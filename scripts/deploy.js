@@ -1,6 +1,10 @@
 const { execSync } = require('child_process');
+const { processInbox } = require('./ingest');
 
-console.log('🚀 [1/3] 正在解析题目并同步 manifest.json...');
+// 0. 如果草稿箱 inbox.md 有内容，自动归档并清空 inbox.md
+processInbox();
+
+console.log('\n🚀 [1/3] 正在解析题目并同步 manifest.json...');
 try {
   execSync('node scripts/sync.js', { stdio: 'inherit' });
 } catch (e) {
