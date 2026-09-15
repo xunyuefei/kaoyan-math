@@ -158,6 +158,14 @@
                 "极坐标"
               ],
               "anchor": "problem-193"
+            },
+            {
+              "num": 194,
+              "title": "38. 试确定方程 $\\int_0^x\\mathrm{e}^{-t^2}\\mathrm{d}t = x^3 -x$ 的实根个数.",
+              "chapter": "2. 一元函数微分",
+              "source": "严选题",
+              "tags": [],
+              "anchor": "problem-194"
             }
           ]
         }
