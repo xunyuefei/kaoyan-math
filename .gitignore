@@ -22,3 +22,9 @@ desktop.ini
 # Backup copies of md at root level (source of truth is content/)
 /高等数学_题解集.md
 /线性代数_题解集.md
+
+# Environment secrets (API keys)
+.env
+
+# Node dependencies
+node_modules/

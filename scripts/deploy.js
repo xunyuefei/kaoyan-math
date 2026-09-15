@@ -1,8 +1,10 @@
 const { execSync } = require('child_process');
-const { processInbox } = require('./ingest');
+const { aiIngest } = require('./ai-ingest');
 
-// 0. 如果草稿箱 inbox.md 有内容，自动归档并清空 inbox.md
-processInbox();
+async function main() {
+
+// 0. 如果草稿箱 inbox.md 有内容，调用 DeepSeek API 进行智能入库
+await aiIngest();
 
 console.log('\n🚀 [1/3] 正在解析题目并同步 manifest.json...');
 try {
@@ -42,3 +44,10 @@ try {
   console.error('❌ Git 推送失败，请检查网络连接后重试。');
   process.exit(1);
 }
+
+} // end async function main
+
+main().catch(err => {
+  console.error('❌ 执行失败:', err.message);
+  process.exit(1);
+});
