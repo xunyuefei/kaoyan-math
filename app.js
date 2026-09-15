@@ -247,9 +247,31 @@
   // ────────────────────────────────────────────
   // Markdown + KaTeX Rendering
   // ────────────────────────────────────────────
+  function sanitizeMarkdown(md) {
+    // In math notes, 4-space indentation outside of ``` code fences
+    // should NEVER trigger markdown indented code blocks (<pre><code>).
+    // Normalize 4-space indentations to 2 spaces.
+    var lines = md.split('\n');
+    var inFence = false;
+    var result = lines.map(function (line) {
+      if (line.trim().indexOf('```') === 0) {
+        inFence = !inFence;
+        return line;
+      }
+      if (!inFence && /^\s{4,}/.test(line) && !line.trim().startsWith('*') && !line.trim().startsWith('-')) {
+        return line.replace(/^\s{4}/, '  ');
+      }
+      return line;
+    });
+    return result.join('\n');
+  }
+
   function renderContent(md, targetEl) {
+    // 0. Prevent indented 4-space lines from accidentally turning into <pre><code> blocks
+    var cleanMd = sanitizeMarkdown(md);
+
     // 1. Extract math to protect from marked.js
-    var extracted = extractMath(md);
+    var extracted = extractMath(cleanMd);
 
     // 2. Parse markdown → HTML
     var html = marked.parse(extracted.md, { gfm: true, breaks: false });
@@ -295,6 +317,7 @@
    * Stores raw LaTeX in data-tex for the copy enhancer.
    */
   function restoreMath(root, blocks) {
+    // 1. Standard DOM placeholder elements
     root.querySelectorAll('.math-ph').forEach(function (span) {
       var id = parseInt(span.getAttribute('data-mid'), 10);
       var block = blocks[id];
@@ -319,6 +342,23 @@
           : '$' + block.tex + '$';
       }
     });
+
+    // 2. Ironclad Safety Net: If any placeholder was escaped into HTML entities (&lt;span class=...&gt;)
+    if (root.innerHTML.indexOf('math-ph') !== -1) {
+      root.innerHTML = root.innerHTML.replace(/&lt;span class=(?:&quot;|["'])math-ph(?:&quot;|["']) data-mid=(?:&quot;|["'])(\d+)(?:&quot;|["'])&gt;&lt;\/span&gt;/g, function (match, id) {
+        var block = blocks[parseInt(id, 10)];
+        if (!block) return match;
+        try {
+          return katex.renderToString(block.tex, {
+            displayMode: block.display,
+            throwOnError: false,
+            trust: true,
+          });
+        } catch (e) {
+          return block.display ? '$$' + block.tex + '$$' : '$' + block.tex + '$';
+        }
+      });
+    }
   }
 
   /** Wrap <table> elements in a scrollable div for mobile */
