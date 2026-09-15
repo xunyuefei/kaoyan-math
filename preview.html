@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>考研数学 SOP 题解站 (现代学术预览版)</title>
+  <meta name="description" content="考研数学复习笔记 — 高等数学与线性代数核心题型 SOP 决策解构（现代卡片流排版预览版）。">
+
+  <!-- KaTeX CSS -->
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
+  <!-- Modern Preview CSS -->
+  <link rel="stylesheet" href="preview.css?v=20260915_v2">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header class="p-header" id="header">
+    <div class="p-header-left">
+      <button class="p-menu-btn" id="menuBtn" aria-label="展开导航菜单">☰</button>
+      <div class="p-brand">
+        <span class="p-brand-logo">📐</span>
+        <span class="p-brand-title">考研数学 SOP</span>
+        <span class="p-badge-preview">Preview 2.0</span>
+      </div>
+      <nav class="p-subject-tabs" id="subjectTabs">
+        <!-- Tabs injected by preview.js -->
+      </nav>
+    </div>
+    <div class="p-header-right">
+      <a href="index.html" class="p-action-btn p-btn-official" title="返回当前的经典稳定版本">← 返回稳定版</a>
+      <button class="p-action-btn" id="themeToggle" aria-label="切换暗色/亮色模式" title="切换暗色/亮色模式">
+        <span id="themeIcon">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Layout ===== -->
+  <div class="p-layout">
+    <!-- Sidebar -->
+    <aside class="p-sidebar" id="sidebar">
+      <div class="p-sidebar-search">
+        <div class="p-search-wrapper">
+          <span class="p-search-icon">🔍</span>
+          <input type="text" class="p-search-input" id="searchInput" placeholder="实时搜索题号、关键词、题型…">
+        </div>
+      </div>
+      <div class="p-sidebar-actions">
+        <span>按收录日期归档</span>
+        <div class="p-toggle-group">
+          <button class="p-mini-btn" id="expandAllBtn" title="全部展开 SOP">全部展开</button>
+          <button class="p-mini-btn" id="collapseAllBtn" title="全部收起 SOP">全部收起</button>
+        </div>
+      </div>
+      <nav class="p-sidebar-nav" id="sidebarNav">
+        <!-- Date groups and items injected by preview.js -->
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="p-main" id="mainContent">
+      <div class="p-content-toolbar">
+        <div class="p-content-info">
+          <h2 id="subjectTitle">高等数学 · 典藏版</h2>
+          <p id="subjectStatsText">正在载入题目列表…</p>
+        </div>
+        <div class="p-view-controls">
+          <button class="p-control-btn" id="expandStreamBtn" type="button">
+            <span>📖 展开全部推导</span>
+          </button>
+          <button class="p-control-btn" id="collapseStreamBtn" type="button">
+            <span>📑 仅看题干速览</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="p-loading-state" id="loadingState">
+        <div class="p-spinner"></div>
+        <p>正在渲染数学题解与公式…</p>
+      </div>
+
+      <!-- Cards Stream Container -->
+      <div class="p-cards-stream" id="cardsStream"></div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script src="preview.js?v=20260915_v2"></script>
+</body>
+</html>

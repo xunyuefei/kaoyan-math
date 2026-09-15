@@ -2,6 +2,7 @@
 *.pdf
 *.html
 !index.html
+!preview.html
 
 # Build artifacts
 generate_pdf.py
