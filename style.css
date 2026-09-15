@@ -208,6 +208,27 @@ img { max-width:100%; height:auto; }
   font-size:12px; font-weight:600;
   color:var(--text-3); text-transform:uppercase;
   letter-spacing:.3px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  user-select:none;
+}
+.nav-date-label::after {
+  content: '▼';
+  font-size:0.8em;
+  opacity:0.6;
+  transition: transform 0.2s var(--ease);
+}
+.nav-date-group.collapsed .nav-date-label::after {
+  transform: rotate(-90deg);
+}
+.nav-problems {
+  display: block;
+  overflow: hidden;
+}
+.nav-date-group.collapsed .nav-problems {
+  display: none;
 }
 
 /* Nav item */

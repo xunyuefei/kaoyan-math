@@ -118,14 +118,24 @@
     const nav = $('sidebarNav');
     nav.innerHTML = '';
 
-    subject.batches.forEach((batch) => {
+    subject.batches.forEach((batch, index) => {
       const group = document.createElement('div');
       group.className = 'nav-date-group';
+      // Collapse all except the first one
+      if (index !== 0) {
+        group.classList.add('collapsed');
+      }
 
       const label = document.createElement('div');
       label.className = 'nav-date-label';
       label.textContent = '\uD83D\uDCC5 ' + batch.date; // 📅
+      label.addEventListener('click', () => {
+        group.classList.toggle('collapsed');
+      });
       group.appendChild(label);
+
+      const problemsContainer = document.createElement('div');
+      problemsContainer.className = 'nav-problems';
 
       batch.problems.forEach((p) => {
         const a = document.createElement('a');
@@ -145,9 +155,10 @@
           }
           closeMobileMenu();
         });
-        group.appendChild(a);
+        problemsContainer.appendChild(a);
       });
 
+      group.appendChild(problemsContainer);
       nav.appendChild(group);
     });
   }
