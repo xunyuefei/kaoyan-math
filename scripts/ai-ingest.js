@@ -61,7 +61,14 @@ function parseFirstLine(line) {
   else if (/严选/.test(t)) source = '严选题';
   else if (/讲义|辅导/.test(t)) source = '辅导讲义';
 
-  // 识别章节（同时确认学科）
+  // 预判学科
+  if (/线代|线性代数|660/.test(t)) {
+    subjectKey = 'linalg';
+  } else if (/高数|高等数学|600/.test(t)) {
+    subjectKey = 'calculus';
+  }
+
+  // 识别章节（按关键字）
   if (/二重积分/.test(t)) { chapter = '二重积分'; subjectKey = 'calculus'; }
   else if (/多元函数微分|多元微分/.test(t)) { chapter = '多元函数微分'; subjectKey = 'calculus'; }
   else if (/常微分方程|微分方程/.test(t)) { chapter = '常微分方程'; subjectKey = 'calculus'; }
@@ -74,6 +81,20 @@ function parseFirstLine(line) {
   else if (/n维向量|向量组|向量/.test(t)) { chapter = 'n维向量'; subjectKey = 'linalg'; }
   else if (/矩阵/.test(t)) { chapter = '矩阵'; subjectKey = 'linalg'; }
   else if (/行列式/.test(t)) { chapter = '行列式'; subjectKey = 'linalg'; }
+
+  // 识别章节（按“第X章”数字映射）
+  if (!chapter) {
+    const chapNumMatch = t.match(/第\s*([一二三四五六1-6])\s*章/);
+    if (chapNumMatch) {
+      const char = chapNumMatch[1];
+      const idxMap = { '一': 0, '1': 0, '二': 1, '2': 1, '三': 2, '3': 2, '四': 3, '4': 3, '五': 4, '5': 4, '六': 5, '6': 5 };
+      const idx = idxMap[char];
+      if (idx !== undefined) {
+        const targetSubKey = subjectKey || 'calculus';
+        chapter = TAXONOMY[targetSubKey].chapters[idx];
+      }
+    }
+  }
 
   // 若无法从章节名判断学科，则从来源推断
   if (!subjectKey) {
@@ -249,6 +270,19 @@ async function aiIngest() {
   if (!userContent) {
     console.log('⚠️ [AI Ingest] inbox.md 只有指示行，没有实际题目内容。');
     return false;
+  }
+
+  // 查重防御：检查用户输入中的题号是否已存在于目标文件
+  const explicitNumMatch = userContent.match(/(?:^|\n)\s*(\d{1,4})\s*\./) || userContent.match(/题目\s*(\d{1,4})/);
+  if (explicitNumMatch) {
+    const pNum = explicitNumMatch[1];
+    const existingContent = fs.existsSync(targetFile) ? fs.readFileSync(targetFile, 'utf8') : '';
+    if (existingContent.includes(`id="problem-${pNum}"`) || existingContent.includes(`### 📌 题目 ${pNum}`)) {
+      console.log(`\n⚠️ [AI Ingest] 查重拦截：【${subjectConfig.name}】中已存在【题目 ${pNum}】！`);
+      console.log(`   无需重复调用 API 入库，将自动清空 inbox.md。`);
+      fs.writeFileSync(inboxPath, '', 'utf8');
+      return true;
+    }
   }
 
   const aiOutput = await callDeepSeekAPI(systemPrompt, userContent);

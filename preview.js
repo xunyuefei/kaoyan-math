@@ -31,8 +31,22 @@
 
     try {
       manifest = await fetch('manifest.json?t=' + Date.now()).then(r => r.json());
+
+      // 智能识别初始学科：优先根据 URL hash 嗅探属于哪个学科，其次使用 localStorage 记忆，默认高等数学
+      let initialSubject = localStorage.getItem('active_subject') || 'calculus';
+      if (location.hash) {
+        const targetAnchor = location.hash.slice(1);
+        for (const sub of manifest.subjects) {
+          const found = sub.batches && sub.batches.some(b => b.problems && b.problems.some(p => p.anchor === targetAnchor));
+          if (found) {
+            initialSubject = sub.id;
+            break;
+          }
+        }
+      }
+
       buildSubjectTabs();
-      await switchSubject('calculus');
+      await switchSubject(initialSubject);
     } catch (e) {
       console.error('Failed to load manifest:', e);
       const loading = $('loadingState');
@@ -97,6 +111,21 @@
   // ────────────────────────────────────────────
   async function switchSubject(subjectId) {
     currentSubjectId = subjectId;
+    try { localStorage.setItem('active_subject', subjectId); } catch (_) {}
+
+    // 同步更新顶栏 Tab 选中状态
+    const tabsContainer = $('subjectTabs');
+    if (tabsContainer) {
+      qsa('.p-tab-btn', tabsContainer).forEach(btn => {
+        const match = manifest && manifest.subjects.find(s => s.id === subjectId);
+        if (match && btn.textContent.includes(match.name)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
     const subject = manifest.subjects.find(s => s.id === subjectId);
     if (!subject) return;
 
