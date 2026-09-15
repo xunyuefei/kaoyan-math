@@ -157,27 +157,65 @@
   }
 
   // ────────────────────────────────────────────
-  // Chapter Inference & Parser
+  // User Canonical Taxonomy & Normalizers
   // ────────────────────────────────────────────
-  function inferChapter(title, tags, raw, subjectId) {
-    const combined = (title + ' ' + (tags || []).join(' ') + ' ' + raw.slice(0, 500)).toLowerCase();
+  const TAXONOMY = {
+    calculus: {
+      chapters: [
+        '1. 函数与极限',
+        '2. 一元函数微分',
+        '3. 一元函数积分',
+        '4. 常微分方程',
+        '5. 多元函数微分',
+        '6. 二重积分'
+      ],
+      sources: ['辅导讲义', '600题', '精选题', '严选题']
+    },
+    linalg: {
+      chapters: [
+        '1. 行列式',
+        '2. 矩阵',
+        '3. n维向量',
+        '4. 线性方程组',
+        '5. 特征值与特征向量',
+        '6. 二次型'
+      ],
+      sources: ['辅导讲义', '660题', '严选题']
+    }
+  };
+
+  function normalizeChapter(rawText, subjectId) {
+    const text = (rawText || '').trim();
     if (subjectId === 'calculus') {
-      if (/二重积分|积分次序|极坐标|弓形区域|齐次降维|微元|d\\sigma|dr d\\theta|dx dy/i.test(combined)) return '多元函数积分学（二重积分）';
-      if (/微分方程|特解|通解|阶线性|特征方程/i.test(combined)) return '常微分方程';
-      if (/级数|收敛|审敛|幂级数|傅里叶/i.test(combined)) return '无穷级数';
-      if (/偏导|全微分|多元极值|切平面|方向导数|梯度/i.test(combined)) return '多元函数微分学';
-      if (/定积分|不定积分|反常积分|变限积分|黎曼和/i.test(combined)) return '一元函数积分学';
-      if (/导数|切线|极值|单调|曲率|中值定理|罗尔|拉格朗日/i.test(combined)) return '一元函数微分学';
-      if (/极限|等价无穷小|连续|间断点/i.test(combined)) return '函数、极限与连续';
-      return '多元函数积分学（二重积分）';
+      if (/二重积分/i.test(text)) return '6. 二重积分';
+      if (/多元函数微分|多元微分/i.test(text)) return '5. 多元函数微分';
+      if (/常微分方程|微分方程/i.test(text)) return '4. 常微分方程';
+      if (/一元函数积分|一元积分/i.test(text)) return '3. 一元函数积分';
+      if (/一元函数微分|一元微分/i.test(text)) return '2. 一元函数微分';
+      if (/函数与极限|极限/i.test(text)) return '1. 函数与极限';
+      return '6. 二重积分';
     } else {
-      if (/特征值|特征向量|相似|对角化|零幂|幂零/i.test(combined)) return '特征值与特征向量';
-      if (/二次型|正定|合同|惯性指数/i.test(combined)) return '二次型';
-      if (/线性方程组|方程组|基础解系|通解|kronecker/i.test(combined)) return '线性方程组';
-      if (/向量组|线性相关|线性无关|极大无关组|线性表出/i.test(combined)) return '向量组的线性相关性';
-      if (/行列式|代数余子式|范德蒙/i.test(combined)) return '行列式';
-      if (/伴随矩阵|逆矩阵|初等矩阵|矩阵方程|矩阵/i.test(combined)) return '矩阵及其运算';
-      return '线性方程组';
+      if (/二次型/i.test(text)) return '6. 二次型';
+      if (/特征值|特征向量/i.test(text)) return '5. 特征值与特征向量';
+      if (/线性方程组|方程组/i.test(text)) return '4. 线性方程组';
+      if (/n维向量|向量组|向量/i.test(text)) return '3. n维向量';
+      if (/矩阵/i.test(text)) return '2. 矩阵';
+      if (/行列式/i.test(text)) return '1. 行列式';
+      return '5. 特征值与特征向量';
+    }
+  }
+
+  function normalizeSource(rawText, num, subjectId) {
+    const text = (rawText || '').trim();
+    if (/600/i.test(text)) return '600题';
+    if (/660/i.test(text)) return '660题';
+    if (/精选/i.test(text)) return '精选题';
+    if (/严选/i.test(text)) return '严选题';
+    if (/讲义|辅导/i.test(text)) return '辅导讲义';
+    if (subjectId === 'calculus') {
+      return num < 100 ? '严选题' : '600题';
+    } else {
+      return '严选题';
     }
   }
 
@@ -198,17 +236,20 @@
       const anchor = 'problem-' + num;
 
       // Extract tags
-      const tagMatch = raw.match(/题型标签[：:]\s*([^\n\r]+)/);
+      const tagMatch = raw.match(/题型标签[：:]\s*([^\n\r·]+)/);
       const tags = tagMatch ? tagMatch[1].replace(/`/g, '').split(/[\/、]/).map(t => t.trim()).filter(Boolean) : [];
 
       // Extract chapter
-      let chapter = '';
-      const chapterMatch = raw.match(/(?:所属章节|章节)[：:]\s*`?([^`\n\r]+)`?/);
-      if (chapterMatch) {
-        chapter = chapterMatch[1].trim();
-      } else {
-        chapter = inferChapter(title, tags, raw, subject.id);
-      }
+      let chapterRaw = '';
+      const chapterMatch = raw.match(/(?:所属章节|章节)[：:]\s*`?([^`\n\r·]+)`?/);
+      if (chapterMatch) chapterRaw = chapterMatch[1].trim();
+      const chapter = normalizeChapter(chapterRaw, subject.id);
+
+      // Extract source
+      let sourceRaw = '';
+      const sourceMatch = raw.match(/(?:来源题集|来源|题集)[：:]\s*`?([^`\n\r·]+)`?/);
+      if (sourceMatch) sourceRaw = sourceMatch[1].trim();
+      const source = normalizeSource(sourceRaw, num, subject.id);
 
       // Extract stem (原题呈现)
       let stem = '';
@@ -238,7 +279,7 @@
         solutionBody = solMatch[0].trim();
       }
 
-      problems.push({ num, title, chapter, anchor, tags, stem, breakthrough, finalAns, solutionBody });
+      problems.push({ num, title, chapter, source, anchor, tags, stem, breakthrough, finalAns, solutionBody });
     }
 
     // Sort by num ascending
@@ -271,6 +312,7 @@
       header.innerHTML = `
         <div class="p-card-title-group">
           <span class="p-problem-num-badge">P.${p.num}</span>
+          <span class="p-source-badge">🏷️ ${p.source}</span>
           <span class="p-chapter-badge">📚 ${p.chapter}</span>
           <h3 class="p-card-title">${renderMathInline(p.title)}</h3>
           <div class="p-card-tags">
@@ -441,7 +483,7 @@
   }
 
   // ────────────────────────────────────────────
-  // Sidebar Build (Dual Dimension: Chapter vs Date)
+  // Sidebar Build (Tri-Dimension: Chapter vs Source vs Date)
   // ────────────────────────────────────────────
   function buildSidebar(subject, problems) {
     const nav = $('sidebarNav');
@@ -452,7 +494,8 @@
     const isGrid = localStorage.getItem('sidebarViewMode') === 'grid';
 
     if (dim === 'chapter') {
-      // 📚 按考研章节归属分类
+      // 📚 按考研官方大纲 6 大标准章节归属分类（严格保持 1..6 顺序）
+      const canonicalList = TAXONOMY[subject.id] ? TAXONOMY[subject.id].chapters : [];
       const chapterMap = {};
       problems.forEach((p) => {
         const ch = p.chapter || '考点专题';
@@ -460,8 +503,12 @@
         chapterMap[ch].push(p);
       });
 
-      const chapterNames = Object.keys(chapterMap);
-      chapterNames.forEach((ch) => {
+      const orderedChapters = canonicalList.filter(ch => chapterMap[ch] && chapterMap[ch].length > 0);
+      Object.keys(chapterMap).forEach(ch => {
+        if (!orderedChapters.includes(ch)) orderedChapters.push(ch);
+      });
+
+      orderedChapters.forEach((ch) => {
         const chProblems = chapterMap[ch];
         const group = document.createElement('div');
         group.className = 'p-nav-date-group';
@@ -488,7 +535,71 @@
           a.className = 'p-nav-item';
           a.href = '#' + p.anchor;
           a.dataset.anchor = p.anchor;
-          a.title = p.num + '. ' + stripMath(p.title);
+          a.title = p.num + '. [' + p.source + '] ' + stripMath(p.title);
+          a.innerHTML = `
+            <span class="p-nav-num">${p.num}</span>
+            <span class="p-nav-text">${stripMath(p.title)}</span>
+          `;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = document.getElementById(p.anchor);
+            if (card) {
+              card.classList.add('sop-expanded');
+              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              history.replaceState(null, '', '#' + p.anchor);
+              highlightActiveNavItem(p.anchor);
+            }
+            closeMobileMenu();
+          });
+          problemList.appendChild(a);
+        });
+
+        group.appendChild(problemList);
+        nav.appendChild(group);
+      });
+    } else if (dim === 'source') {
+      // 🏷️ 按用户来源题集（严选题 / 600题 / 660题 / 辅导讲义 / 精选题）分类
+      const canonicalSources = TAXONOMY[subject.id] ? TAXONOMY[subject.id].sources : [];
+      const sourceMap = {};
+      problems.forEach((p) => {
+        const src = p.source || '精选题集';
+        if (!sourceMap[src]) sourceMap[src] = [];
+        sourceMap[src].push(p);
+      });
+
+      const orderedSources = canonicalSources.filter(s => sourceMap[s] && sourceMap[s].length > 0);
+      Object.keys(sourceMap).forEach(s => {
+        if (!orderedSources.includes(s)) orderedSources.push(s);
+      });
+
+      orderedSources.forEach((src) => {
+        const srcProblems = sourceMap[src];
+        const group = document.createElement('div');
+        group.className = 'p-nav-date-group';
+
+        const header = document.createElement('div');
+        header.className = 'p-nav-date-header';
+        header.innerHTML = `
+          <div class="p-date-title-box">
+            <span>🏷️ ${src}</span>
+            <span class="p-date-badge">${srcProblems.length} 题</span>
+          </div>
+          <span class="p-date-arrow">▼</span>
+        `;
+        header.addEventListener('click', () => {
+          group.classList.toggle('collapsed');
+        });
+        group.appendChild(header);
+
+        const problemList = document.createElement('div');
+        problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+        srcProblems.forEach((p) => {
+          const a = document.createElement('a');
+          a.className = 'p-nav-item';
+          a.href = '#' + p.anchor;
+          a.dataset.anchor = p.anchor;
+          a.title = p.num + '. [' + p.chapter + '] ' + stripMath(p.title);
           a.innerHTML = `
             <span class="p-nav-num">${p.num}</span>
             <span class="p-nav-text">${stripMath(p.title)}</span>
@@ -769,7 +880,7 @@
         if (currentSub && allProblems.length) {
           buildSidebar(currentSub, allProblems);
         }
-        showToast(dim === 'chapter' ? '📚 已切换为按知识点章节分类' : '📅 已切换为按收录日期归档');
+        showToast(dim === 'chapter' ? '📚 已切换为按知识点章节分类' : (dim === 'source' ? '🏷️ 已切换为按题集来源分类' : '📅 已切换为按收录日期归档'));
       };
 
       qsa('.p-dim-tab', dimContainer).forEach(btn => {

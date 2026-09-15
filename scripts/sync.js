@@ -8,25 +8,70 @@ const today = new Date().toISOString().split('T')[0];
 
 let hasErrors = false;
 
-function inferChapter(title, tags, raw, subjectId) {
-  const combined = (title + ' ' + tags.join(' ') + ' ' + raw.slice(0, 500)).toLowerCase();
+// 用户官方唯一标准大纲与题集体系
+const TAXONOMY = {
+  calculus: {
+    chapters: [
+      '1. 函数与极限',
+      '2. 一元函数微分',
+      '3. 一元函数积分',
+      '4. 常微分方程',
+      '5. 多元函数微分',
+      '6. 二重积分'
+    ],
+    sources: ['辅导讲义', '600题', '精选题', '严选题']
+  },
+  linalg: {
+    chapters: [
+      '1. 行列式',
+      '2. 矩阵',
+      '3. n维向量',
+      '4. 线性方程组',
+      '5. 特征值与特征向量',
+      '6. 二次型'
+    ],
+    sources: ['辅导讲义', '660题', '严选题']
+  }
+};
+
+// 标准化章节映射
+function normalizeChapter(rawText, subjectId) {
+  const text = (rawText || '').trim();
   if (subjectId === 'calculus') {
-    if (/二重积分|积分次序|极坐标|弓形区域|齐次降维|微元|d\\sigma|dr d\\theta|dx dy/i.test(combined)) return '多元函数积分学（二重积分）';
-    if (/微分方程|特解|通解|阶线性|特征方程/i.test(combined)) return '常微分方程';
-    if (/级数|收敛|审敛|幂级数|傅里叶/i.test(combined)) return '无穷级数';
-    if (/偏导|全微分|多元极值|切平面|方向导数|梯度/i.test(combined)) return '多元函数微分学';
-    if (/定积分|不定积分|反常积分|变限积分|黎曼和/i.test(combined)) return '一元函数积分学';
-    if (/导数|切线|极值|单调|曲率|中值定理|罗尔|拉格朗日/i.test(combined)) return '一元函数微分学';
-    if (/极限|等价无穷小|连续|间断点/i.test(combined)) return '函数、极限与连续';
-    return '多元函数积分学（二重积分）';
+    if (/二重积分/i.test(text)) return '6. 二重积分';
+    if (/多元函数微分|多元微分/i.test(text)) return '5. 多元函数微分';
+    if (/常微分方程|微分方程/i.test(text)) return '4. 常微分方程';
+    if (/一元函数积分|一元积分/i.test(text)) return '3. 一元函数积分';
+    if (/一元函数微分|一元微分/i.test(text)) return '2. 一元函数微分';
+    if (/函数与极限|极限/i.test(text)) return '1. 函数与极限';
+    // 默认高数当前均为二重积分专项
+    return '6. 二重积分';
   } else {
-    if (/特征值|特征向量|相似|对角化|零幂|幂零/i.test(combined)) return '特征值与特征向量';
-    if (/二次型|正定|合同|惯性指数/i.test(combined)) return '二次型';
-    if (/线性方程组|方程组|基础解系|通解|kronecker/i.test(combined)) return '线性方程组';
-    if (/向量组|线性相关|线性无关|极大无关组|线性表出/i.test(combined)) return '向量组的线性相关性';
-    if (/行列式|代数余子式|范德蒙/i.test(combined)) return '行列式';
-    if (/伴随矩阵|逆矩阵|初等矩阵|矩阵方程|矩阵/i.test(combined)) return '矩阵及其运算';
-    return '线性方程组';
+    if (/二次型/i.test(text)) return '6. 二次型';
+    if (/特征值|特征向量/i.test(text)) return '5. 特征值与特征向量';
+    if (/线性方程组|方程组/i.test(text)) return '4. 线性方程组';
+    if (/n维向量|向量组|向量/i.test(text)) return '3. n维向量';
+    if (/矩阵/i.test(text)) return '2. 矩阵';
+    if (/行列式/i.test(text)) return '1. 行列式';
+    // 默认线代当前均为特征值与特征向量专项
+    return '5. 特征值与特征向量';
+  }
+}
+
+// 标准化来源题集映射
+function normalizeSource(rawText, num, subjectId) {
+  const text = (rawText || '').trim();
+  if (/600/i.test(text)) return '600题';
+  if (/660/i.test(text)) return '660题';
+  if (/精选/i.test(text)) return '精选题';
+  if (/严选/i.test(text)) return '严选题';
+  if (/讲义|辅导/i.test(text)) return '辅导讲义';
+
+  // 兜底规则（依用户约定：高数小于100为严选题，大于100为600题；线代为严选题）
+  if (subjectId === 'calculus') {
+    return num < 100 ? '严选题' : '600题';
+  } else {
+    return '严选题';
   }
 }
 
@@ -43,7 +88,7 @@ manifest.subjects.forEach(subject => {
   
   for (let i = 1; i < parts.length; i++) {
     const raw = parts[i];
-    const titleMatch = raw.match(/^[#\s]*📌\s*题目\s*(\d+)[:：]\s*([^\n]+)/m);
+    const titleMatch = raw.match(/^[#\s]*📌\s*题目\s*(\d+)[:：]\s*([^\r\n]+)/m);
     
     if (!titleMatch) {
       console.warn(`\x1b[33m[Warning]\x1b[0m 发现一处缺失标题格式或未以 "📌 题目" 开头的块，在 ${subject.file}`);
@@ -55,18 +100,24 @@ manifest.subjects.forEach(subject => {
     const title = titleMatch[2].trim();
     const anchor = 'problem-' + num;
     
-    // 提取章节（支持 “所属章节：XXX” 或 “章节：XXX”，若未填写则智能推断）
-    let chapter = '';
-    const chapterMatch = raw.match(/(?:所属章节|章节)[：:]\s*`?([^`\n\r]+)`?/);
-    
-    const tagMatch = raw.match(/题型标签[：:]\s*([^\n\r]+)/);
-    const tags = tagMatch ? tagMatch[1].replace(/`/g, '').split(/[\/、]/).map(t => t.trim()).filter(Boolean) : [];
-    
+    // 提取章节
+    let chapterRaw = '';
+    const chapterMatch = raw.match(/(?:所属章节|章节)[：:]\s*`?([^`\r\n·]+)`?/);
     if (chapterMatch) {
-      chapter = chapterMatch[1].trim();
-    } else {
-      chapter = inferChapter(title, tags, raw, subject.id);
+      chapterRaw = chapterMatch[1].trim();
     }
+    const chapter = normalizeChapter(chapterRaw, subject.id);
+    
+    // 提取来源题集
+    let sourceRaw = '';
+    const sourceMatch = raw.match(/(?:来源题集|来源|题集)[：:]\s*`?([^`\r\n·]+)`?/);
+    if (sourceMatch) {
+      sourceRaw = sourceMatch[1].trim();
+    }
+    const source = normalizeSource(sourceRaw, num, subject.id);
+    
+    const tagMatch = raw.match(/题型标签[：:]\s*([^\r\n·]+)/);
+    const tags = tagMatch ? tagMatch[1].replace(/`/g, '').split(/[\/、]/).map(t => t.trim()).filter(Boolean) : [];
     
     if (!tagMatch) {
       console.warn(`\x1b[33m[Warning]\x1b[0m 题目 P.${num} (${title}) 缺少 "题型标签："`);
@@ -85,7 +136,7 @@ manifest.subjects.forEach(subject => {
       hasErrors = true;
     }
     
-    parsedProblems.push({ num, title, chapter, tags, anchor });
+    parsedProblems.push({ num, title, chapter, source, tags, anchor });
   }
   
   // 合并到现有的 batches 中
@@ -104,21 +155,22 @@ manifest.subjects.forEach(subject => {
   parsedProblems.forEach(p => {
     if (!existingNumToBatch[p.num]) {
       newProblems.push(p);
-      console.log(`\x1b[36m[Info]\x1b[0m 发现新题：P.${p.num} - ${p.title}，自动归档至 ${today}`);
+      console.log(`\x1b[36m[Info]\x1b[0m 发现新题：P.${p.num} - ${p.title}，归入【${p.chapter} | ${p.source}】，自动归档至 ${today}`);
     }
   });
   
-  // 重建 batches（更新已有题目的标题和标签）
+  // 重建 batches（更新已有题目的标题、章节、来源和标签）
   const newBatchesMap = {};
   existingBatches.forEach(b => {
     newBatchesMap[b.date] = { date: b.date, problems: [] };
   });
   
   parsedProblems.forEach(p => {
-    const date = existingNumToBatch[p.num];
-    if (date) {
-      newBatchesMap[date].problems.push(p);
+    const date = existingNumToBatch[p.num] || today;
+    if (!newBatchesMap[date]) {
+      newBatchesMap[date] = { date, problems: [] };
     }
+    newBatchesMap[date].problems.push(p);
   });
   
   // 将新题放入今天的 batch
@@ -126,7 +178,11 @@ manifest.subjects.forEach(subject => {
     if (!newBatchesMap[today]) {
       newBatchesMap[today] = { date: today, problems: [] };
     }
-    newBatchesMap[today].problems.push(...newProblems);
+    newProblems.forEach(np => {
+      if (!newBatchesMap[today].problems.some(p => p.num === np.num)) {
+        newBatchesMap[today].problems.push(np);
+      }
+    });
   }
   
   // 转换回数组，并按日期升序排列
@@ -146,5 +202,5 @@ fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
 if (hasErrors) {
   console.log(`\n\x1b[33m[Done]\x1b[0m 同步完成！已更新 manifest.json。但请检查上方列出的 \x1b[33m[Warning]\x1b[0m 格式问题。`);
 } else {
-  console.log(`\n\x1b[32m[Success]\x1b[0m 同步完成！题目格式全部规范，manifest.json 已更新。`);
+  console.log(`\n\x1b[32m[Success]\x1b[0m 同步完成！所有题目已严格遵循用户标准大纲（章节 & 题集）规制，manifest.json 已更新。`);
 }
