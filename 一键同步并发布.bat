@@ -1,26 +1,25 @@
 @echo off
-chcp 65001 >nul
-title 考研数学 SOP 题解站 —— 一键自动同步与发布
-color 0b
+cd /d "%~dp0"
+title KaoYan Math Auto Deploy
 
 echo.
 echo ========================================================
-echo       📐 考研数学 SOP 题解站 —— 一键全自动同步与发布
+echo   [KaoYan Math] Auto Sync and Deploy
 echo ========================================================
 echo.
 
 node scripts/deploy.js
 
-if %errorlevel% neq 0 (
+if errorlevel 1 (
     echo.
-    echo ❌ 发布过程中发生错误，请查看上方提示。
+    echo [Error] Deploy failed. Please check the error above.
     echo.
     pause
-    exit /b %errorlevel%
+    exit /b 1
 )
 
 echo.
-echo --------------------------------------------------------
-echo 倒计时 5 秒后窗口将自动关闭...
+echo ========================================================
+echo [Success] Deploy completed! Auto closing in 5s...
 timeout /t 5 >nul
 exit /b 0
