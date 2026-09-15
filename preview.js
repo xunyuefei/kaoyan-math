@@ -14,6 +14,7 @@
   let manifest = null;
   let currentSubjectId = 'calculus';
   let allProblems = [];
+  let mathObserver = null;
 
   // ────────────────────────────────────────────
   // Initialization
@@ -23,6 +24,10 @@
     setupMobileMenu();
     setupSearch();
     setupGlobalControls();
+    setupLazyMathObserver();
+    setupBlindTestMode();
+    setupSidebarViewMode();
+    setupFloatingDock();
 
     try {
       manifest = await fetch('manifest.json?t=' + Date.now()).then(r => r.json());
@@ -137,6 +142,21 @@
   }
 
   // ────────────────────────────────────────────
+  // Intersection Observer for Lazy Math
+  // ────────────────────────────────────────────
+  function setupLazyMathObserver() {
+    if (mathObserver) return;
+    mathObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          restoreAllMath(entry.target);
+          mathObserver.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '500px 0px' });
+  }
+
+  // ────────────────────────────────────────────
   // Parse Problems from Markdown
   // ────────────────────────────────────────────
   function parseProblems(md, subject) {
@@ -223,6 +243,8 @@
           </div>
         </div>
         <div class="p-card-actions">
+          <button class="p-copy-btn" type="button" title="一键复制本题与公式">📋 复制</button>
+          <button class="p-unmask-btn" type="button" title="揭晓本题手眼法与答案">👁️ 揭晓</button>
           <button class="p-toggle-sop-btn" type="button" aria-label="展开推导">
             <span>SOP 题解</span>
             <span class="p-sop-arrow">▼</span>
@@ -268,40 +290,118 @@
       card.appendChild(drawer);
 
       container.appendChild(card);
+      
+      // Observe card for lazy KaTeX rendering
+      if (mathObserver) {
+        mathObserver.observe(card);
+      }
     });
 
     // Style step headings (Layer 1 ~ Layer 6 badges)
     styleStepHeadings(container);
 
-    // Delegated click handler on container for toggling SOP
+    // Delegated click handler on container for card actions
     container.onclick = (e) => {
+      // 1. Toggle SOP Button
       const btn = e.target.closest('.p-toggle-sop-btn');
       if (btn) {
         const card = btn.closest('.p-card');
-        if (card) card.classList.toggle('sop-expanded');
+        if (card) {
+          card.classList.toggle('sop-expanded');
+          restoreAllMath(card);
+        }
+        return;
+      }
+
+      // 2. Copy Question Button
+      const copyBtn = e.target.closest('.p-copy-btn');
+      if (copyBtn) {
+        const card = copyBtn.closest('.p-card');
+        if (card) {
+          const num = card.dataset.num;
+          const prob = allProblems.find(p => String(p.num) === String(num));
+          if (prob) {
+            const copyText = `📌 题目 ${prob.num}：${prob.title}\n\n【原题呈现】\n${prob.stem}\n\n【最终结论】\n${prob.finalAns || '见题解'}`;
+            navigator.clipboard.writeText(copyText).then(() => {
+              showToast(`✅ 题目 P.${prob.num} 已复制到剪贴板！`);
+            }).catch(() => {
+              showToast('⚠️ 复制失败，请手动选取文本');
+            });
+          }
+        }
+        return;
+      }
+
+      // 3. Unmask Button (Blind Test Mode)
+      const unmaskBtn = e.target.closest('.p-unmask-btn');
+      if (unmaskBtn) {
+        const card = unmaskBtn.closest('.p-card');
+        if (card) {
+          card.classList.toggle('unmasked');
+          const bt = card.querySelector('.p-breakthrough-box');
+          if (bt) bt.classList.toggle('unmasked');
+          restoreAllMath(card);
+          showToast(card.classList.contains('unmasked') ? '👁️ 本题已揭晓' : '🙈 本题已重新遮罩');
+        }
+        return;
+      }
+
+      // 4. Click Breakthrough Box to toggle unmask in Blind Mode
+      const btBox = e.target.closest('.p-breakthrough-box');
+      if (btBox && document.body.classList.contains('mode-blind-test')) {
+        btBox.classList.toggle('unmasked');
+        return;
       }
     };
-
-    // Render KaTeX for all math placeholders in container
-    restoreAllMath(container);
   }
 
   function styleStepHeadings(root) {
-    root.querySelectorAll('.p-solution-content h1, .p-solution-content h2, .p-solution-content h3, .p-solution-content h4, .p-solution-content h5').forEach((h) => {
-      const txt = h.textContent;
-      let cls = '';
-      if (/第[一1]步/.test(txt)) cls = 'l1';
-      else if (/第[二2]步/.test(txt)) cls = 'l2';
-      else if (/第[三3]步/.test(txt)) cls = 'l3';
-      else if (/第[四4]步/.test(txt)) cls = 'l4';
-      else if (/第[五5]步/.test(txt)) cls = 'l5';
-      else if (/第[六6]步/.test(txt)) cls = 'l6';
-      else return;
+    root.querySelectorAll('.p-solution-content').forEach((solContent) => {
+      const headings = Array.from(solContent.querySelectorAll('h1, h2, h3, h4, h5'));
+      if (!headings.length) return;
 
-      const badge = document.createElement('div');
-      badge.className = 'p-step-badge ' + cls;
-      badge.innerHTML = h.innerHTML;
-      h.replaceWith(badge);
+      const timeline = document.createElement('div');
+      timeline.className = 'p-timeline';
+
+      let currentStep = null;
+      let currentContent = null;
+
+      Array.from(solContent.childNodes).forEach((node) => {
+        if (node.nodeType === 1 && /^H[1-5]$/i.test(node.tagName) && /第[一二三四五六1-6]步/.test(node.textContent)) {
+          const txt = node.textContent;
+          let cls = 'l1';
+          if (/第[二2]步/.test(txt)) cls = 'l2';
+          else if (/第[三3]步/.test(txt)) cls = 'l3';
+          else if (/第[四4]步/.test(txt)) cls = 'l4';
+          else if (/第[五5]步/.test(txt)) cls = 'l5';
+          else if (/第[六6]步/.test(txt)) cls = 'l6';
+
+          currentStep = document.createElement('div');
+          currentStep.className = 'p-timeline-step ' + cls;
+
+          const marker = document.createElement('div');
+          marker.className = 'p-timeline-node';
+          currentStep.appendChild(marker);
+
+          const badge = document.createElement('div');
+          badge.className = 'p-step-badge ' + cls;
+          badge.innerHTML = node.innerHTML;
+          currentStep.appendChild(badge);
+
+          currentContent = document.createElement('div');
+          currentContent.className = 'p-timeline-content';
+          currentStep.appendChild(currentContent);
+
+          timeline.appendChild(currentStep);
+        } else if (currentContent) {
+          currentContent.appendChild(node.cloneNode(true));
+        }
+      });
+
+      if (timeline.children.length > 0) {
+        solContent.innerHTML = '';
+        solContent.appendChild(timeline);
+      }
     });
   }
 
@@ -339,13 +439,14 @@
       group.appendChild(header);
 
       const problemList = document.createElement('div');
-      problemList.className = 'p-nav-problems';
+      problemList.className = 'p-nav-problems' + (localStorage.getItem('sidebarViewMode') === 'grid' ? ' grid-mode' : '');
 
       batchProblems.forEach((p) => {
         const a = document.createElement('a');
         a.className = 'p-nav-item';
         a.href = '#' + p.anchor;
         a.dataset.anchor = p.anchor;
+        a.title = p.num + '. ' + stripMath(p.title);
         a.innerHTML = `
           <span class="p-nav-num">${p.num}</span>
           <span class="p-nav-text">${stripMath(p.title)}</span>
@@ -521,6 +622,117 @@
   function closeMobileMenu() {
     const sb = $('sidebar');
     if (sb) sb.classList.remove('open');
+  }
+
+  // ────────────────────────────────────────────
+  // Blind Test Mode (自测遮罩模式)
+  // ────────────────────────────────────────────
+  function setupBlindTestMode() {
+    const toggleBlindMode = () => {
+      const isBlind = document.body.classList.toggle('mode-blind-test');
+      localStorage.setItem('blindTestMode', isBlind ? 'true' : 'false');
+      updateBlindBtnState(isBlind);
+      showToast(isBlind ? '🙈 已开启自测做题模式（手眼法与SOP解答已遮罩）' : '👁️ 已退出自测模式');
+    };
+
+    const updateBlindBtnState = (isBlind) => {
+      const btnText = $('blindTestText');
+      const btnIcon = $('blindTestIcon');
+      if (btnText) btnText.textContent = isBlind ? '退出自测' : '自测做题模式';
+      if (btnIcon) btnIcon.textContent = isBlind ? '👁️' : '🙈';
+
+      const dockBtn = $('dockBlindBtn');
+      if (dockBtn) dockBtn.textContent = isBlind ? '👁️' : '🙈';
+    };
+
+    if ($('blindTestBtn')) $('blindTestBtn').addEventListener('click', toggleBlindMode);
+    if ($('dockBlindBtn')) $('dockBlindBtn').addEventListener('click', toggleBlindMode);
+
+    // Restore saved state
+    if (localStorage.getItem('blindTestMode') === 'true') {
+      document.body.classList.add('mode-blind-test');
+      updateBlindBtnState(true);
+    }
+  }
+
+  // ────────────────────────────────────────────
+  // Sidebar View Mode (列表 vs 题号矩阵)
+  // ────────────────────────────────────────────
+  function setupSidebarViewMode() {
+    const container = $('sidebarViewMode');
+    if (!container) return;
+
+    const setMode = (mode) => {
+      qsa('.p-mode-tab', container).forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+      qsa('.p-nav-problems', $('sidebarNav')).forEach(el => {
+        el.classList.toggle('grid-mode', mode === 'grid');
+      });
+      localStorage.setItem('sidebarViewMode', mode);
+      showToast(mode === 'grid' ? '⊞ 已切换为题号矩阵视图' : '☰ 已切换为列表视图');
+    };
+
+    qsa('.p-mode-tab', container).forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    // Restore saved mode
+    const saved = localStorage.getItem('sidebarViewMode');
+    if (saved) {
+      qsa('.p-mode-tab', container).forEach(b => b.classList.toggle('active', b.dataset.mode === saved));
+    }
+  }
+
+  // ────────────────────────────────────────────
+  // Floating Quick Dock (悬浮快捷工具栏)
+  // ────────────────────────────────────────────
+  function setupFloatingDock() {
+    const dock = $('floatingDock');
+    if (!dock) return;
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        dock.classList.add('visible');
+      } else {
+        dock.classList.remove('visible');
+      }
+    });
+
+    if ($('dockTopBtn')) {
+      $('dockTopBtn').addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    if ($('dockExpandBtn')) {
+      $('dockExpandBtn').addEventListener('click', () => {
+        const cards = qsa('.p-card');
+        const anyCollapsed = cards.some(c => !c.classList.contains('sop-expanded'));
+        cards.forEach(c => {
+          if (anyCollapsed) {
+            c.classList.add('sop-expanded');
+            restoreAllMath(c);
+          } else {
+            c.classList.remove('sop-expanded');
+          }
+        });
+        showToast(anyCollapsed ? '📖 已全部展开 SOP' : '📑 已全部折叠');
+      });
+    }
+  }
+
+  // ────────────────────────────────────────────
+  // Toast Notification System
+  // ────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg) {
+    const toast = $('pToast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2400);
   }
 
 })();

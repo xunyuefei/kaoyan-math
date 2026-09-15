@@ -48,7 +48,13 @@
         </div>
       </div>
       <div class="p-sidebar-actions">
-        <span>按收录日期归档</span>
+        <div class="p-sidebar-action-left">
+          <span>收录归档</span>
+          <div class="p-view-mode-tabs" id="sidebarViewMode">
+            <button class="p-mode-tab active" data-mode="list" title="列表视图">列表</button>
+            <button class="p-mode-tab" data-mode="grid" title="题号矩阵视图">矩阵</button>
+          </div>
+        </div>
         <div class="p-toggle-group">
           <button class="p-mini-btn" id="expandAllBtn" title="全部展开 SOP">全部展开</button>
           <button class="p-mini-btn" id="collapseAllBtn" title="全部收起 SOP">全部收起</button>
@@ -63,15 +69,19 @@
     <main class="p-main" id="mainContent">
       <div class="p-content-toolbar">
         <div class="p-content-info">
-          <h2 id="subjectTitle">高等数学 · 典藏版</h2>
+          <h2 id="subjectTitle">高等数学 · 现代学术版</h2>
           <p id="subjectStatsText">正在载入题目列表…</p>
         </div>
         <div class="p-view-controls">
+          <button class="p-control-btn" id="blindTestBtn" type="button" title="隐藏解法与手眼法，先在草稿纸上独立演算">
+            <span id="blindTestIcon">🙈</span>
+            <span id="blindTestText">自测做题模式</span>
+          </button>
           <button class="p-control-btn" id="expandStreamBtn" type="button">
-            <span>📖 展开全部推导</span>
+            <span>📖 展开全部</span>
           </button>
           <button class="p-control-btn" id="collapseStreamBtn" type="button">
-            <span>📑 仅看题干速览</span>
+            <span>📑 仅看题干</span>
           </button>
         </div>
       </div>
@@ -86,6 +96,16 @@
       <div class="p-cards-stream" id="cardsStream"></div>
     </main>
   </div>
+
+  <!-- Floating Quick Dock -->
+  <div class="p-floating-dock" id="floatingDock">
+    <button class="p-dock-btn" id="dockBlindBtn" title="切换自测模式">🙈</button>
+    <button class="p-dock-btn" id="dockExpandBtn" title="切换全部展开/折叠">📖</button>
+    <button class="p-dock-btn" id="dockTopBtn" title="返回顶部">▲</button>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="p-toast" id="pToast"></div>
 
   <!-- Scripts -->
   <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>

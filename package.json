@@ -1,0 +1,8 @@
+{
+  "name": "kaoyan-math",
+  "version": "1.0.0",
+  "description": "自动化脚本，用于解析和同步题库",
+  "scripts": {
+    "sync": "node scripts/sync.js"
+  }
+}

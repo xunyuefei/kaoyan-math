@@ -9,16 +9,110 @@
         {
           "date": "2026-09-15",
           "problems": [
-            { "num": 12, "title": "变限二重积分极限确定待定参数", "tags": ["变限积分", "极限未定式", "泰勒展开"], "anchor": "problem-12" },
-            { "num": 14, "title": "二重积分交换积分次序", "tags": ["积分次序", "圆弧反函数", "空集陷阱"], "anchor": "problem-14" },
-            { "num": 21, "title": "复合变限二重积分求极限", "tags": ["莱布尼茨公式", "变限积分求导"], "anchor": "problem-21" },
-            { "num": 22, "title": "变限二重积分函数单调性最值", "tags": ["单调性", "最值", "驻点"], "anchor": "problem-22" },
-            { "num": 23, "title": "变限积分黎曼和数列极限", "tags": ["黎曼和", "分部积分", "定积分"], "anchor": "problem-23" },
-            { "num": 24, "title": "含超越复合变限二重积分高阶等价无穷小", "tags": ["等价无穷小", "泰勒主值替换"], "anchor": "problem-24" },
-            { "num": 28, "title": "含取整函数二重积分分域计算", "tags": ["二重积分", "取整函数", "极坐标解耦"], "anchor": "problem-28" },
-            { "num": 30, "title": "极坐标二重积分逆向直角坐标化", "tags": ["二重积分", "逆向直角坐标化", "凑微分"], "anchor": "problem-30" },
-            { "num": 191, "title": "弓形区域极坐标重构与齐次项降维", "tags": ["二重积分", "极坐标变换", "弓形区域", "齐次降维"], "anchor": "problem-191" },
-            { "num": 193, "title": "圆域二重积分奇偶销蚀与轮换对称性", "tags": ["二重积分", "奇偶对称性", "轮换对称性", "极坐标"], "anchor": "problem-193" }
+            {
+              "num": 12,
+              "title": "变限二重积分极限确定待定参数 $\\alpha, \\beta$",
+              "tags": [
+                "变限积分",
+                "极限未定式",
+                "泰勒展开"
+              ],
+              "anchor": "problem-12"
+            },
+            {
+              "num": 14,
+              "title": "二重积分交换积分次序（有效区域排雷与反函数分支确定）",
+              "tags": [
+                "二重积分",
+                "交换次序",
+                "有效积分域"
+              ],
+              "anchor": "problem-14"
+            },
+            {
+              "num": 21,
+              "title": "复合变限二重积分与莱布尼茨求导法则求极限",
+              "tags": [
+                "变限二重积分",
+                "莱布尼茨法则",
+                "洛必达法则"
+              ],
+              "anchor": "problem-21"
+            },
+            {
+              "num": 22,
+              "title": "变限二重积分函数的单调性最值分析",
+              "tags": [
+                "变限二重积分",
+                "最值驻点",
+                "分部积分"
+              ],
+              "anchor": "problem-22"
+            },
+            {
+              "num": 23,
+              "title": "变限积分黎曼和数列极限与分部积分脱壳",
+              "tags": [
+                "数列极限",
+                "黎曼和",
+                "分部积分"
+              ],
+              "anchor": "problem-23"
+            },
+            {
+              "num": 24,
+              "title": "含超越复合变限二重积分高阶等价无穷小极限",
+              "tags": [
+                "变限二重积分",
+                "泰勒展开",
+                "极限主部"
+              ],
+              "anchor": "problem-24"
+            },
+            {
+              "num": 28,
+              "title": "设 $D = \\{(x, y) \\mid x^2 + y^2 \\leqslant \\sqrt{2}, x \\geqslant 0, y \\geqslant 0\\}$，计算二重积分 $\\iint_{D} xy[1 + x^2 + y^2] \\, \\mathrm{d}x \\mathrm{d}y$",
+              "tags": [
+                "二重积分",
+                "取整函数",
+                "极坐标解耦",
+                "分域积分"
+              ],
+              "anchor": "problem-28"
+            },
+            {
+              "num": 30,
+              "title": "计算二重积分 $I = \\iint_{D} r^{2} \\sin \\theta \\sqrt{1 - r^{2} \\cos 2\\theta} \\, \\mathrm{d}r \\mathrm{d}\\theta$，其中 $D = \\left\\{(r, \\theta) \\mid 0 \\leqslant r \\leqslant \\sec \\theta, 0 \\leqslant \\theta \\leqslant \\frac{\\pi}{4}\\right\\}$",
+              "tags": [
+                "二重积分",
+                "逆向直角坐标化",
+                "凑微分",
+                "华理士公式"
+              ],
+              "anchor": "problem-30"
+            },
+            {
+              "num": 191,
+              "title": "计算 $\\int_0^1\\mathrm{d}x\\int_{1 - x}^{\\sqrt{1 - x^2}}\\frac{x + y}{x^2 + y^2}\\mathrm{d}y$",
+              "tags": [
+                "二重积分",
+                "极坐标变换",
+                "弓形区域",
+                "齐次降维"
+              ],
+              "anchor": "problem-191"
+            },
+            {
+              "num": 193,
+              "title": "计算 $\\iint_{x^2 + y^2 \\leqslant 1} (x^2 + 2y) \\, \\mathrm{d}\\sigma$",
+              "tags": [
+                "二重积分",
+                "奇偶对称性",
+                "轮换对称性",
+                "极坐标"
+              ],
+              "anchor": "problem-193"
+            }
           ]
         }
       ]
@@ -32,10 +126,47 @@
         {
           "date": "2026-09-15",
           "problems": [
-            { "num": 1, "title": "线性方程组含参解的存在性判定", "tags": ["增广矩阵", "秩判定", "Kronecker-Capelli"], "anchor": "problem-1" },
-            { "num": 2, "title": "抽象矩阵方程组通解与列向量线性表出", "tags": ["通解结构", "线性表出", "反证法"], "anchor": "problem-2" },
-            { "num": 3, "title": "不同特征值特征向量和的非特征向量证明", "tags": ["特征值", "线性无关", "反证法"], "anchor": "problem-3" },
-            { "num": 4, "title": "非零幂零矩阵不可相似对角化证明", "tags": ["幂零矩阵", "相似对角化", "反证法"], "anchor": "problem-4" }
+            {
+              "num": 1,
+              "title": "线性方程组含参解的存在性判定",
+              "tags": [
+                "线性方程组",
+                "增广矩阵",
+                "秩的判定"
+              ],
+              "anchor": "problem-1"
+            },
+            {
+              "num": 2,
+              "title": "抽象矩阵方程组通解与列向量线性表出证明",
+              "tags": [
+                "方程组通解",
+                "线性表出",
+                "向量组的秩",
+                "反证法"
+              ],
+              "anchor": "problem-2"
+            },
+            {
+              "num": 3,
+              "title": "不同特征值特征向量和的非特征向量证明",
+              "tags": [
+                "特征值与特征向量",
+                "线性无关性",
+                "反证法"
+              ],
+              "anchor": "problem-3"
+            },
+            {
+              "num": 4,
+              "title": "非零幂零矩阵不可相似对角化证明",
+              "tags": [
+                "幂零矩阵",
+                "相似对角化",
+                "矩阵的幂"
+              ],
+              "anchor": "problem-4"
+            }
           ]
         }
       ]
