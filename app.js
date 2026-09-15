@@ -118,19 +118,55 @@
     const nav = $('sidebarNav');
     nav.innerHTML = '';
 
+    // Toolbar with Archive title and Expand/Collapse All
+    const toolbar = document.createElement('div');
+    toolbar.className = 'sidebar-toolbar';
+    toolbar.innerHTML =
+      '<span>收录日期归档</span>' +
+      '<div class="sidebar-toolbar-actions">' +
+      '<button class="sidebar-tool-btn" id="expandAllBtn" title="展开全部日期">全部展开</button>' +
+      '<button class="sidebar-tool-btn" id="collapseAllBtn" title="收起全部日期">全部折叠</button>' +
+      '</div>';
+    nav.appendChild(toolbar);
+
+    toolbar.querySelector('#expandAllBtn').addEventListener('click', () => {
+      qsa('.nav-date-group', nav).forEach((g) => g.classList.remove('collapsed'));
+    });
+    toolbar.querySelector('#collapseAllBtn').addEventListener('click', () => {
+      qsa('.nav-date-group', nav).forEach((g) => g.classList.add('collapsed'));
+    });
+
+    const currentHash = location.hash ? location.hash.slice(1) : '';
+
     subject.batches.forEach((batch, index) => {
       const group = document.createElement('div');
       group.className = 'nav-date-group';
-      // Collapse all except the first one
-      if (index !== 0) {
+
+      // Expand if it contains current targeted hash, otherwise collapse if multiple or by preference
+      const hasTarget = currentHash && batch.problems.some((p) => p.anchor === currentHash);
+      if (!hasTarget && index !== 0) {
         group.classList.add('collapsed');
       }
 
+      // Date Header
       const label = document.createElement('div');
       label.className = 'nav-date-label';
-      label.textContent = '\uD83D\uDCC5 ' + batch.date; // 📅
+      label.title = '点击跳转至该日期目录，或展开/收起题目列表';
+      label.innerHTML =
+        '<div class="nav-date-info">' +
+        '<span class="nav-date-title">📅 ' + batch.date + '</span>' +
+        '<span class="nav-date-badge">' + batch.problems.length + ' 题</span>' +
+        '</div>' +
+        '<span class="nav-date-arrow">▼</span>';
+
       label.addEventListener('click', () => {
         group.classList.toggle('collapsed');
+        // Scroll to date anchor in article if it exists
+        const dateEl = document.getElementById('date-' + batch.date);
+        if (dateEl) {
+          dateEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.replaceState(null, '', '#date-' + batch.date);
+        }
       });
       group.appendChild(label);
 
@@ -326,7 +362,14 @@
 
   function setActiveNavItem(anchorId) {
     qsa('.nav-item', $('sidebarNav')).forEach(function (item) {
-      item.classList.toggle('active', item.dataset.anchor === anchorId);
+      const match = item.dataset.anchor === anchorId;
+      item.classList.toggle('active', match);
+      if (match) {
+        const parentGroup = item.closest('.nav-date-group');
+        if (parentGroup && parentGroup.classList.contains('collapsed')) {
+          parentGroup.classList.remove('collapsed');
+        }
+      }
     });
   }
 
