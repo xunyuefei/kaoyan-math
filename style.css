@@ -407,6 +407,37 @@ img { max-width:100%; height:auto; }
 }
 .paper blockquote strong { color:var(--text); }
 
+/* Quick Jump Links & Anchors */
+[id] {
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+
+.paper a[href^="#problem-"],
+.paper a[href^="#date-"],
+.paper a[href="#toc"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: var(--primary-surface);
+  color: var(--primary) !important;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none !important;
+  transition: all .2s var(--ease);
+  margin: 3px 0;
+}
+.paper a[href^="#problem-"]:hover,
+.paper a[href^="#date-"]:hover,
+.paper a[href="#toc"]:hover {
+  background: var(--primary);
+  color: #fff !important;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
 /* ---------- 8. Tables ---------- */
 .paper table {
   width:100%;
