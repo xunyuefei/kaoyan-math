@@ -281,7 +281,7 @@ async function aiIngest() {
       console.log(`\n⚠️ [AI Ingest] 查重拦截：【${subjectConfig.name}】中已存在【题目 ${pNum}】！`);
       console.log(`   无需重复调用 API 入库，将自动清空 inbox.md。`);
       fs.writeFileSync(inboxPath, '', 'utf8');
-      return true;
+      return { success: true, count: 0, anchor: 'problem-' + pNum };
     }
   }
 
@@ -305,11 +305,15 @@ async function aiIngest() {
   const problemCount = (cleanOutput.match(/📌\s*题目\s*\d+/g) || []).length;
   console.log(`\n✨ [AI Ingest] 成功！${problemCount} 道题目已写入【${subjectConfig.name} · ${finalChapter}】`);
 
+  // 提取首个题目 anchor
+  const anchorMatch = cleanOutput.match(/<a\s+id="([^"]+)">/);
+  const firstAnchor = anchorMatch ? anchorMatch[1] : '';
+
   // 7. 清空 inbox.md
   fs.writeFileSync(inboxPath, '', 'utf8');
   console.log('🧹 [AI Ingest] inbox.md 已自动清空\n');
 
-  return true;
+  return { success: true, count: problemCount, anchor: firstAnchor };
 }
 
 module.exports = { aiIngest };

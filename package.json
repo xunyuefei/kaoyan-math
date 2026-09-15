@@ -6,6 +6,7 @@
     "ai-ingest": "node scripts/ai-ingest.js",
     "inbox": "node scripts/ingest.js",
     "sync": "node scripts/sync.js",
-    "deploy": "node scripts/deploy.js"
+    "deploy": "node scripts/deploy.js",
+    "serve": "node scripts/serve.js"
   }
 }
