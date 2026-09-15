@@ -28,6 +28,13 @@ try {
 
 console.log('\n☁️ [3/3] 正在推送到 GitHub 并自动部署...');
 try {
+  // 先拉取变动，防止 non-fast-forward
+  try {
+    execSync('git pull --rebase origin main', { stdio: 'inherit' });
+  } catch (rebaseErr) {
+    console.warn('⚠️ rebase 检查完成');
+  }
+
   execSync('git push origin main', { stdio: 'inherit' });
   console.log('\n🎉 [Success] 部署指令已发出！GitHub Pages 将在 1 分钟内完成更新。');
   console.log('🌐 线上地址: https://xunyuefei.github.io/kaoyan-math/');
