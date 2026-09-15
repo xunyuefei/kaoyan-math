@@ -18,4 +18,5 @@ desktop.ini
 *.swo
 
 # Backup copies of md at root level (source of truth is content/)
-# Keep these for now, but they are NOT used by the website
+/高等数学_题解集.md
+/线性代数_题解集.md
