@@ -1,0 +1,573 @@
+/* ==========================================================================
+   考研数学 SOP 题解阅读站 — Premium Stylesheet
+   ========================================================================== */
+
+/* ---------- 1. Design Tokens ---------- */
+:root {
+  /* Palette — Light */
+  --bg:              #f0f2f5;
+  --surface:         #ffffff;
+  --surface-hover:   #f8fafc;
+  --surface-alt:     #f1f5f9;
+  --text:            #1a1a2e;
+  --text-2:          #475569;
+  --text-3:          #94a3b8;
+  --border:          #e2e8f0;
+  --border-light:    #f1f5f9;
+
+  --primary:         #4f46e5;
+  --primary-light:   #818cf8;
+  --primary-surface: #eef2ff;
+  --primary-dark:    #3730a3;
+
+  --accent:          #0ea5e9;
+  --success:         #10b981;
+  --warn:            #f59e0b;
+  --warn-surface:    #fffbeb;
+  --warn-border:     #fcd34d;
+  --danger:          #ef4444;
+
+  /* Layout */
+  --sidebar-w:       300px;
+  --header-h:        60px;
+  --paper-max-w:     880px;
+
+  /* Type */
+  --font: "PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --mono: "JetBrains Mono","Fira Code",Consolas,monospace;
+  --fs:   15.5px;
+  --lh:   1.78;
+
+  /* Effects */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -2px rgba(0,0,0,.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08),0 4px 6px -4px rgba(0,0,0,.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,.1);
+
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+  --ease: cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- Dark Theme Tokens ---------- */
+[data-theme="dark"] {
+  --bg:              #0c0f1a;
+  --surface:         #161b2e;
+  --surface-hover:   #1e2440;
+  --surface-alt:     #1a2035;
+  --text:            #e8eaf0;
+  --text-2:          #a0aec0;
+  --text-3:          #5a6478;
+  --border:          #2a3148;
+  --border-light:    #1e2440;
+
+  --primary:         #818cf8;
+  --primary-light:   #a5b4fc;
+  --primary-surface: rgba(99,102,241,.12);
+  --primary-dark:    #6366f1;
+
+  --warn-surface:    rgba(245,158,11,.1);
+  --warn-border:     #92400e;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.25);
+  --shadow-md: 0 4px 8px rgba(0,0,0,.3);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,.35);
+}
+
+/* ---------- 2. Reset & Base ---------- */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body {
+  font-family: var(--font);
+  font-size: var(--fs);
+  line-height: var(--lh);
+  color: var(--text);
+  background: var(--bg);
+  transition: background .35s var(--ease), color .35s var(--ease);
+  overflow-x: hidden;
+}
+a { color: var(--primary); text-decoration:none; }
+a:hover { text-decoration:underline; }
+img { max-width:100%; height:auto; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--text-3); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--text-2); }
+
+/* ---------- 3. Header ---------- */
+.header {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  height: var(--header-h);
+  display: flex; align-items:center; gap:12px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: background .35s var(--ease), border-color .35s var(--ease);
+}
+
+.header-brand {
+  display:flex; align-items:center; gap:10px;
+  flex-shrink:0;
+}
+.header-logo { font-size:26px; line-height:1; }
+.header-title {
+  font-size:17px; font-weight:700;
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  white-space: nowrap;
+}
+
+/* Tabs */
+.header-tabs {
+  display:flex; gap:4px; margin-left:24px;
+  flex-shrink:0;
+}
+.tab-btn {
+  position:relative;
+  padding: 8px 18px;
+  border:none; background:transparent; cursor:pointer;
+  font: inherit; font-size:14px; font-weight:500;
+  color: var(--text-2);
+  border-radius: var(--r-sm);
+  transition: all .2s var(--ease);
+}
+.tab-btn:hover { background:var(--surface-alt); color:var(--text); }
+.tab-btn.active {
+  color: var(--primary);
+  background: var(--primary-surface);
+  font-weight:600;
+}
+.tab-btn.active::after {
+  content:''; position:absolute;
+  bottom:-1px; left:16px; right:16px; height:2.5px;
+  background:var(--primary); border-radius:2px;
+}
+
+/* Actions */
+.header-actions { margin-left:auto; display:flex; gap:6px; }
+.action-btn {
+  width:38px; height:38px;
+  border:1px solid var(--border); border-radius:var(--r-sm);
+  background:var(--surface); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px;
+  transition: all .2s var(--ease);
+}
+.action-btn:hover { background:var(--surface-alt); border-color:var(--primary-light); }
+
+/* Dark toggle icons */
+.icon-sun  { display:none; }
+.icon-moon { display:inline; }
+[data-theme="dark"] .icon-sun  { display:inline; }
+[data-theme="dark"] .icon-moon { display:none; }
+
+/* Hamburger */
+.mobile-menu-btn {
+  display:none;
+  flex-direction:column; gap:5px;
+  width:38px; height:38px;
+  align-items:center; justify-content:center;
+  background:transparent; border:none; cursor:pointer;
+  padding:0;
+}
+.mobile-menu-btn span {
+  display:block; width:20px; height:2px;
+  background:var(--text); border-radius:1px;
+  transition: all .25s var(--ease);
+}
+
+/* ---------- 4. Sidebar ---------- */
+.sidebar {
+  position: fixed; top: var(--header-h); left:0; bottom:0;
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index:90;
+  transition: transform .3s var(--ease), background .35s var(--ease);
+}
+
+.sidebar-stats {
+  padding: 16px 18px 12px;
+  border-bottom:1px solid var(--border);
+  font-size:13px; color:var(--text-3);
+}
+.sidebar-stats .stat-num {
+  font-weight:700; color:var(--primary); font-size:15px;
+}
+
+.sidebar-nav { padding:8px 0; }
+
+/* Date group */
+.nav-date-group { padding:4px 0; }
+.nav-date-label {
+  padding:8px 18px 4px;
+  font-size:12px; font-weight:600;
+  color:var(--text-3); text-transform:uppercase;
+  letter-spacing:.3px;
+}
+
+/* Nav item */
+.nav-item {
+  display:flex; align-items:baseline; gap:8px;
+  padding:7px 18px 7px 22px;
+  font-size:13.5px; line-height:1.5;
+  color:var(--text-2);
+  cursor:pointer;
+  border-left:3px solid transparent;
+  transition: all .15s var(--ease);
+  text-decoration:none !important;
+}
+.nav-item:hover {
+  background:var(--surface-alt);
+  color:var(--text);
+  text-decoration:none !important;
+}
+.nav-item.active {
+  background:var(--primary-surface);
+  color:var(--primary);
+  border-left-color:var(--primary);
+  font-weight:600;
+}
+.nav-item-num {
+  flex-shrink:0;
+  font-weight:700; font-size:12px;
+  color:var(--primary); opacity:.7;
+  min-width:24px;
+}
+.nav-item.active .nav-item-num { opacity:1; }
+
+/* ---------- 5. Main Content ---------- */
+.main-content {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+  transition: margin-left .3s var(--ease);
+}
+
+.content-wrapper {
+  max-width: var(--paper-max-w);
+  margin: 0 auto;
+  padding: 28px 32px 80px;
+}
+
+/* ---------- 6. Paper (A4 Simulation) ---------- */
+.paper {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 48px 44px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  transition: background .35s var(--ease), box-shadow .35s var(--ease);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ---------- 7. Typography inside Paper ---------- */
+.paper h1 {
+  font-size:24px; font-weight:800;
+  margin:2em 0 .6em;
+  padding-bottom:.4em;
+  border-bottom:2px solid var(--border);
+  color:var(--text);
+  line-height:1.35;
+}
+.paper h1:first-child { margin-top:0; }
+
+.paper h2 {
+  font-size:19px; font-weight:700;
+  margin:1.8em 0 .5em;
+  color:var(--text);
+}
+.paper h3 {
+  font-size:17px; font-weight:700;
+  margin:1.5em 0 .4em;
+  color:var(--primary-dark);
+}
+[data-theme="dark"] .paper h3 { color:var(--primary-light); }
+
+.paper h4 {
+  font-size:15.5px; font-weight:700;
+  margin:1.3em 0 .35em;
+  color:var(--text);
+}
+.paper p  { margin:.7em 0; }
+.paper ul, .paper ol { margin:.5em 0; padding-left:1.6em; }
+.paper li { margin:.25em 0; }
+.paper li > p { margin:.3em 0; }
+.paper hr {
+  border:none; border-top:1px solid var(--border);
+  margin:2em 0;
+}
+.paper strong { font-weight:700; }
+.paper em { font-style:italic; }
+
+/* Blockquotes — callout style */
+.paper blockquote {
+  margin:1em 0;
+  padding:14px 20px;
+  background:var(--surface-alt);
+  border-left:4px solid var(--primary);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  color:var(--text-2);
+  font-size:14.5px;
+}
+.paper blockquote strong { color:var(--text); }
+
+/* ---------- 8. Tables ---------- */
+.paper table {
+  width:100%;
+  border-collapse:collapse;
+  margin:1em 0;
+  font-size:13.5px;
+  line-height:1.6;
+}
+.paper thead th {
+  background:var(--primary-surface);
+  color:var(--primary-dark);
+  font-weight:700;
+  padding:10px 12px;
+  text-align:left;
+  border-bottom:2px solid var(--primary);
+  white-space:nowrap;
+}
+[data-theme="dark"] .paper thead th {
+  color:var(--primary-light);
+}
+.paper tbody td {
+  padding:9px 12px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.paper tbody tr:hover { background:var(--surface-hover); }
+.paper tbody tr:last-child td { border-bottom:none; }
+
+/* Scrollable table wrapper on small screens */
+.table-wrapper {
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin:1em 0;
+}
+
+/* ---------- 9. KaTeX / Math ---------- */
+.katex-display-wrapper {
+  margin:1em 0;
+  padding:.8em 1.2em;
+  background:var(--primary-surface);
+  border-left:3px solid var(--primary);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.katex-display-wrapper .katex { font-size:1.08em; }
+
+.katex-inline-wrapper .katex { font-size:.96em; }
+
+/* Ensure KaTeX text color follows theme */
+.katex { color:var(--text); }
+
+/* ---------- 10. Problem anchors & back-to-top ---------- */
+.paper [id^="problem-"],
+.paper [id="toc"] {
+  scroll-margin-top: calc(var(--header-h) + 20px);
+}
+
+/* Style 🔝 返回目录 links */
+.paper a[href="#toc"] {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 12px;
+  font-size:13px; font-weight:600;
+  color:var(--primary);
+  background:var(--primary-surface);
+  border-radius:20px;
+  transition:all .2s var(--ease);
+}
+.paper a[href="#toc"]:hover {
+  background:var(--primary);
+  color:#fff;
+  text-decoration:none;
+}
+
+/* ---------- 11. Answer / Conclusion Boxes ---------- */
+/* Detect blockquotes containing 🎯 */
+.paper blockquote:has(strong:first-child) {
+  position:relative;
+}
+
+/* ---------- 12. Code (inline) ---------- */
+.paper code {
+  font-family:var(--mono);
+  font-size:.88em;
+  background:var(--surface-alt);
+  padding:2px 6px;
+  border-radius:4px;
+  color:var(--primary-dark);
+}
+[data-theme="dark"] .paper code {
+  color:var(--primary-light);
+  background:var(--surface-hover);
+}
+
+/* ---------- 13. Loading State ---------- */
+.loading {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:80px 0;
+  color:var(--text-3);
+  gap:16px;
+}
+.loading-spinner {
+  width:36px; height:36px;
+  border:3px solid var(--border);
+  border-top-color:var(--primary);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading p { font-size:14px; }
+[hidden] { display:none !important; }
+
+/* Error */
+.error-state {
+  text-align:center; padding:60px 20px;
+  color:var(--danger); font-size:15px;
+}
+
+/* ---------- 14. Scroll-to-top Button ---------- */
+.scroll-top-btn {
+  position:fixed; bottom:28px; right:28px;
+  width:44px; height:44px;
+  border-radius:50%;
+  background:var(--primary);
+  color:#fff;
+  border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: var(--shadow-md);
+  opacity:0; transform:translateY(12px);
+  transition: opacity .25s var(--ease), transform .25s var(--ease);
+  z-index:80;
+  pointer-events:none;
+}
+.scroll-top-btn.visible {
+  opacity:1; transform:translateY(0);
+  pointer-events:auto;
+}
+.scroll-top-btn:hover {
+  background:var(--primary-dark);
+  box-shadow:var(--shadow-lg);
+  transform:translateY(-2px);
+}
+
+/* ---------- 15. Copy Toast ---------- */
+.copy-toast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px);
+  padding:10px 22px;
+  background:var(--primary-dark);
+  color:#fff;
+  border-radius:var(--r-md);
+  font-size:13.5px; font-weight:500;
+  box-shadow:var(--shadow-lg);
+  opacity:0;
+  transition: all .3s var(--ease);
+  z-index:999;
+  pointer-events:none;
+}
+.copy-toast.show {
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ---------- 16. Mobile Responsive ---------- */
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 260px; }
+  .content-wrapper { padding:24px 20px 60px; }
+  .paper { padding:32px 28px; }
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn { display:flex; }
+  .header-title { font-size:15px; }
+  .header-tabs { display:none; }
+
+  /* Mobile tabs under header — moved into sidebar top */
+  .sidebar {
+    transform:translateX(-100%);
+    width:280px;
+    box-shadow:var(--shadow-xl);
+  }
+  .sidebar.open { transform:translateX(0); }
+
+  .sidebar-overlay {
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.4);
+    z-index:85;
+    opacity:0; pointer-events:none;
+    transition: opacity .3s var(--ease);
+  }
+  .sidebar-overlay.visible {
+    opacity:1; pointer-events:auto;
+  }
+
+  .main-content { margin-left:0; }
+
+  .content-wrapper { padding:16px 12px 60px; }
+  .paper { padding:24px 18px; border-radius:var(--r-md); }
+  .paper h1 { font-size:20px; }
+  .paper h2 { font-size:17px; }
+
+  .scroll-top-btn { bottom:20px; right:16px; width:40px; height:40px; }
+}
+
+/* Mobile tabs inside sidebar */
+.sidebar-mobile-tabs {
+  display:none;
+  padding:12px 18px 8px;
+  gap:6px;
+  border-bottom:1px solid var(--border);
+}
+@media (max-width: 768px) {
+  .sidebar-mobile-tabs { display:flex; }
+}
+.sidebar-mobile-tabs .tab-btn {
+  flex:1;
+  text-align:center;
+  font-size:13.5px;
+}
+
+/* ---------- 17. Print Styles ---------- */
+@media print {
+  .header, .sidebar, .sidebar-overlay,
+  .mobile-menu-btn, .scroll-top-btn,
+  .copy-toast, .action-btn { display:none !important; }
+
+  body { background:#fff !important; }
+
+  .main-content {
+    margin-left:0 !important;
+    margin-top:0 !important;
+  }
+  .content-wrapper {
+    max-width:none; padding:0;
+  }
+  .paper {
+    box-shadow:none; border:none; border-radius:0;
+    padding:0; background:#fff;
+  }
+  .paper h1 { page-break-before:always; }
+  .paper h1:first-child { page-break-before:auto; }
+
+  .katex-display-wrapper { border-left-color:#999; background:#f9f9ff; }
+
+  .paper a[href="#toc"] { display:none !important; }
+
+  @page { size:A4; margin:18mm 16mm; }
+}
+
+/* ---------- 18. Animations ---------- */
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.paper { animation: fadeIn .4s var(--ease); }

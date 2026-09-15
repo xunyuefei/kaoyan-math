@@ -1,0 +1,21 @@
+# Generated files
+*.pdf
+*.html
+!index.html
+
+# Build artifacts
+generate_pdf.py
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup copies of md at root level (source of truth is content/)
+# Keep these for now, but they are NOT used by the website

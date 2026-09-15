@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>考研数学 SOP 题解阅读站</title>
+  <meta name="description" content="考研数学复习笔记 — 高等数学与线性代数核心题型 SOP 决策解构。固定网址，永远显示最新内容。">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
+        crossorigin="anonymous">
+
+  <!-- Site styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Favicon (inline SVG data URI) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header class="header" id="header">
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="展开导航菜单">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="header-brand">
+      <span class="header-logo">📐</span>
+      <h1 class="header-title">考研数学 SOP 题解站</h1>
+    </div>
+    <nav class="header-tabs" id="subjectTabs">
+      <!-- Tabs injected by JS -->
+    </nav>
+    <div class="header-actions">
+      <button class="action-btn" id="darkToggle" aria-label="切换暗色模式" title="切换暗色模式">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+      <button class="action-btn" id="printBtn" aria-label="打印 / 导出 PDF" title="打印 / 导出 PDF">🖨️</button>
+    </div>
+  </header>
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-stats" id="sidebarStats">
+      <!-- Stats injected by JS -->
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- TOC injected by JS -->
+    </nav>
+  </aside>
+
+  <!-- ===== Sidebar overlay (mobile) ===== -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ===== Main Content ===== -->
+  <main class="main-content" id="mainContent">
+    <div class="content-wrapper">
+      <!-- Loading -->
+      <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <p>正在加载题解集…</p>
+      </div>
+      <!-- Error -->
+      <div class="error-state" id="errorState" hidden>
+        <p>⚠️ 内容加载失败，请刷新页面重试。</p>
+      </div>
+      <!-- Paper -->
+      <article class="paper" id="paper" role="article"></article>
+    </div>
+  </main>
+
+  <!-- ===== Scroll-to-top ===== -->
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="回到顶部" title="回到顶部">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "subjects": [
+    {
+      "id": "calculus",
+      "name": "高等数学",
+      "icon": "📈",
+      "file": "content/高等数学_题解集.md",
+      "batches": [
+        {
+          "date": "2026-09-15",
+          "problems": [
+            { "num": 12, "title": "变限二重积分极限确定待定参数", "tags": ["变限积分", "极限未定式", "泰勒展开"], "anchor": "problem-12" },
+            { "num": 14, "title": "二重积分交换积分次序", "tags": ["积分次序", "圆弧反函数", "空集陷阱"], "anchor": "problem-14" },
+            { "num": 21, "title": "复合变限二重积分求极限", "tags": ["莱布尼茨公式", "变限积分求导"], "anchor": "problem-21" },
+            { "num": 22, "title": "变限二重积分函数单调性最值", "tags": ["单调性", "最值", "驻点"], "anchor": "problem-22" },
+            { "num": 23, "title": "变限积分黎曼和数列极限", "tags": ["黎曼和", "分部积分", "定积分"], "anchor": "problem-23" },
+            { "num": 24, "title": "含超越复合变限二重积分高阶等价无穷小", "tags": ["等价无穷小", "泰勒主值替换"], "anchor": "problem-24" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linalg",
+      "name": "线性代数",
+      "icon": "🔢",
+      "file": "content/线性代数_题解集.md",
+      "batches": [
+        {
+          "date": "2026-09-15",
+          "problems": [
+            { "num": 1, "title": "线性方程组含参解的存在性判定", "tags": ["增广矩阵", "秩判定", "Kronecker-Capelli"], "anchor": "problem-1" },
+            { "num": 2, "title": "抽象矩阵方程组通解与列向量线性表出", "tags": ["通解结构", "线性表出", "反证法"], "anchor": "problem-2" },
+            { "num": 3, "title": "不同特征值特征向量和的非特征向量证明", "tags": ["特征值", "线性无关", "反证法"], "anchor": "problem-3" },
+            { "num": 4, "title": "非零幂零矩阵不可相似对角化证明", "tags": ["幂零矩阵", "相似对角化", "反证法"], "anchor": "problem-4" }
+          ]
+        }
+      ]
+    }
+  ]
+}
