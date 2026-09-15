@@ -3,80 +3,113 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>考研数学 SOP 题解阅读站</title>
-  <meta name="description" content="考研数学复习笔记 — 高等数学与线性代数核心题型 SOP 决策解构。固定网址，永远显示最新内容。">
+  <title>考研数学 SOP 题解站</title>
+  <meta name="description" content="考研数学复习笔记 — 高等数学与线性代数核心题型 SOP 决策解构（现代学术卡片流）。">
 
-  <!-- KaTeX -->
-  <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
-        crossorigin="anonymous">
+  <!-- KaTeX CSS -->
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
+  <!-- Modern Academic CSS -->
+  <link rel="stylesheet" href="preview.css?v=20260915_v3">
 
-  <!-- Site styles -->
-  <link rel="stylesheet" href="style.css?v=20260915_v6">
-
-  <!-- Favicon (inline SVG data URI) -->
+  <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
 </head>
 <body>
 
   <!-- ===== Header ===== -->
-  <header class="header" id="header">
-    <button class="mobile-menu-btn" id="menuBtn" aria-label="展开导航菜单">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="header-brand">
-      <span class="header-logo">📐</span>
-      <h1 class="header-title">考研数学 SOP 题解站</h1>
+  <header class="p-header" id="header">
+    <div class="p-header-left">
+      <button class="p-menu-btn" id="menuBtn" aria-label="展开导航菜单">☰</button>
+      <div class="p-brand">
+        <span class="p-brand-logo">📐</span>
+        <span class="p-brand-title">考研数学 SOP</span>
+        <span class="p-badge-preview">SOP 2.0</span>
+      </div>
+      <nav class="p-subject-tabs" id="subjectTabs">
+        <!-- Tabs injected by preview.js -->
+      </nav>
     </div>
-    <nav class="header-tabs" id="subjectTabs">
-      <!-- Tabs injected by JS -->
-    </nav>
-    <div class="header-actions">
-      <button class="action-btn" id="darkToggle" aria-label="切换暗色模式" title="切换暗色模式">
-        <span class="icon-sun">☀️</span>
-        <span class="icon-moon">🌙</span>
+    <div class="p-header-right">
+      <a href="classic.html" class="p-action-btn p-btn-official" title="切换回经典单流旧版">📜 经典旧版</a>
+      <button class="p-action-btn" id="themeToggle" aria-label="切换暗色/亮色模式" title="切换暗色/亮色模式">
+        <span id="themeIcon">☀️</span>
       </button>
-      <button class="action-btn" id="printBtn" aria-label="打印 / 导出 PDF" title="打印 / 导出 PDF">🖨️</button>
     </div>
   </header>
 
-  <!-- ===== Sidebar ===== -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-stats" id="sidebarStats">
-      <!-- Stats injected by JS -->
-    </div>
-    <nav class="sidebar-nav" id="sidebarNav">
-      <!-- TOC injected by JS -->
-    </nav>
-  </aside>
-
-  <!-- ===== Sidebar overlay (mobile) ===== -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- ===== Main Content ===== -->
-  <main class="main-content" id="mainContent">
-    <div class="content-wrapper">
-      <!-- Loading -->
-      <div class="loading" id="loading">
-        <div class="loading-spinner"></div>
-        <p>正在加载题解集…</p>
+  <!-- ===== Layout ===== -->
+  <div class="p-layout">
+    <!-- Sidebar -->
+    <aside class="p-sidebar" id="sidebar">
+      <div class="p-sidebar-search">
+        <div class="p-search-wrapper">
+          <span class="p-search-icon">🔍</span>
+          <input type="text" class="p-search-input" id="searchInput" placeholder="实时搜索题号、关键词、题型…">
+        </div>
       </div>
-      <!-- Error -->
-      <div class="error-state" id="errorState" hidden>
-        <p>⚠️ 内容加载失败，请刷新页面重试。</p>
+      <div class="p-sidebar-actions">
+        <div class="p-sidebar-action-left">
+          <span>收录归档</span>
+          <div class="p-view-mode-tabs" id="sidebarViewMode">
+            <button class="p-mode-tab active" data-mode="list" title="列表视图">列表</button>
+            <button class="p-mode-tab" data-mode="grid" title="题号矩阵视图">矩阵</button>
+          </div>
+        </div>
+        <div class="p-toggle-group">
+          <button class="p-mini-btn" id="expandAllBtn" title="全部展开 SOP">全部展开</button>
+          <button class="p-mini-btn" id="collapseAllBtn" title="全部收起 SOP">全部收起</button>
+        </div>
       </div>
-      <!-- Paper -->
-      <article class="paper" id="paper" role="article"></article>
-    </div>
-  </main>
+      <nav class="p-sidebar-nav" id="sidebarNav">
+        <!-- Date groups and items injected by preview.js -->
+      </nav>
+    </aside>
 
-  <!-- ===== Scroll-to-top ===== -->
-  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="回到顶部" title="回到顶部">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-  </button>
+    <!-- Main Content -->
+    <main class="p-main" id="mainContent">
+      <div class="p-content-toolbar">
+        <div class="p-content-info">
+          <h2 id="subjectTitle">高等数学 · 现代学术版</h2>
+          <p id="subjectStatsText">正在载入题目列表…</p>
+        </div>
+        <div class="p-view-controls">
+          <button class="p-control-btn" id="blindTestBtn" type="button" title="隐藏解法与手眼法，先在草稿纸上独立演算">
+            <span id="blindTestIcon">🙈</span>
+            <span id="blindTestText">自测做题模式</span>
+          </button>
+          <button class="p-control-btn" id="expandStreamBtn" type="button">
+            <span>📖 展开全部</span>
+          </button>
+          <button class="p-control-btn" id="collapseStreamBtn" type="button">
+            <span>📑 仅看题干</span>
+          </button>
+        </div>
+      </div>
 
-  <!-- ===== Scripts ===== -->
+      <!-- Loading State -->
+      <div class="p-loading-state" id="loadingState">
+        <div class="p-spinner"></div>
+        <p>正在渲染数学题解与公式…</p>
+      </div>
+
+      <!-- Cards Stream Container -->
+      <div class="p-cards-stream" id="cardsStream"></div>
+    </main>
+  </div>
+
+  <!-- Floating Quick Dock -->
+  <div class="p-floating-dock" id="floatingDock">
+    <button class="p-dock-btn" id="dockBlindBtn" title="切换自测模式">🙈</button>
+    <button class="p-dock-btn" id="dockExpandBtn" title="切换全部展开/折叠">📖</button>
+    <button class="p-dock-btn" id="dockTopBtn" title="返回顶部">▲</button>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="p-toast" id="pToast"></div>
+
+  <!-- Scripts -->
   <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
   <script src="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script src="app.js?v=20260915_v6"></script>
+  <script src="preview.js?v=20260915_v3"></script>
 </body>
 </html>
