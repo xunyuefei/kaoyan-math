@@ -157,6 +157,31 @@
   }
 
   // ────────────────────────────────────────────
+  // Chapter Inference & Parser
+  // ────────────────────────────────────────────
+  function inferChapter(title, tags, raw, subjectId) {
+    const combined = (title + ' ' + (tags || []).join(' ') + ' ' + raw.slice(0, 500)).toLowerCase();
+    if (subjectId === 'calculus') {
+      if (/二重积分|积分次序|极坐标|弓形区域|齐次降维|微元|d\\sigma|dr d\\theta|dx dy/i.test(combined)) return '多元函数积分学（二重积分）';
+      if (/微分方程|特解|通解|阶线性|特征方程/i.test(combined)) return '常微分方程';
+      if (/级数|收敛|审敛|幂级数|傅里叶/i.test(combined)) return '无穷级数';
+      if (/偏导|全微分|多元极值|切平面|方向导数|梯度/i.test(combined)) return '多元函数微分学';
+      if (/定积分|不定积分|反常积分|变限积分|黎曼和/i.test(combined)) return '一元函数积分学';
+      if (/导数|切线|极值|单调|曲率|中值定理|罗尔|拉格朗日/i.test(combined)) return '一元函数微分学';
+      if (/极限|等价无穷小|连续|间断点/i.test(combined)) return '函数、极限与连续';
+      return '多元函数积分学（二重积分）';
+    } else {
+      if (/特征值|特征向量|相似|对角化|零幂|幂零/i.test(combined)) return '特征值与特征向量';
+      if (/二次型|正定|合同|惯性指数/i.test(combined)) return '二次型';
+      if (/线性方程组|方程组|基础解系|通解|kronecker/i.test(combined)) return '线性方程组';
+      if (/向量组|线性相关|线性无关|极大无关组|线性表出/i.test(combined)) return '向量组的线性相关性';
+      if (/行列式|代数余子式|范德蒙/i.test(combined)) return '行列式';
+      if (/伴随矩阵|逆矩阵|初等矩阵|矩阵方程|矩阵/i.test(combined)) return '矩阵及其运算';
+      return '线性方程组';
+    }
+  }
+
+  // ────────────────────────────────────────────
   // Parse Problems from Markdown
   // ────────────────────────────────────────────
   function parseProblems(md, subject) {
@@ -175,6 +200,15 @@
       // Extract tags
       const tagMatch = raw.match(/题型标签[：:]\s*([^\n\r]+)/);
       const tags = tagMatch ? tagMatch[1].replace(/`/g, '').split(/[\/、]/).map(t => t.trim()).filter(Boolean) : [];
+
+      // Extract chapter
+      let chapter = '';
+      const chapterMatch = raw.match(/(?:所属章节|章节)[：:]\s*`?([^`\n\r]+)`?/);
+      if (chapterMatch) {
+        chapter = chapterMatch[1].trim();
+      } else {
+        chapter = inferChapter(title, tags, raw, subject.id);
+      }
 
       // Extract stem (原题呈现)
       let stem = '';
@@ -204,7 +238,7 @@
         solutionBody = solMatch[0].trim();
       }
 
-      problems.push({ num, title, anchor, tags, stem, breakthrough, finalAns, solutionBody });
+      problems.push({ num, title, chapter, anchor, tags, stem, breakthrough, finalAns, solutionBody });
     }
 
     // Sort by num ascending
@@ -237,6 +271,7 @@
       header.innerHTML = `
         <div class="p-card-title-group">
           <span class="p-problem-num-badge">P.${p.num}</span>
+          <span class="p-chapter-badge">📚 ${p.chapter}</span>
           <h3 class="p-card-title">${renderMathInline(p.title)}</h3>
           <div class="p-card-tags">
             ${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}
@@ -406,68 +441,133 @@
   }
 
   // ────────────────────────────────────────────
-  // Sidebar Build (Grouped by Date Batches)
+  // Sidebar Build (Dual Dimension: Chapter vs Date)
   // ────────────────────────────────────────────
   function buildSidebar(subject, problems) {
     const nav = $('sidebarNav');
     if (!nav) return;
     nav.innerHTML = '';
 
-    const batches = (subject.batches && subject.batches.length)
-      ? subject.batches
-      : [{ date: '2026-09-15', problems: problems.map(p => ({ num: p.num, title: p.title, anchor: p.anchor })) }];
+    const dim = localStorage.getItem('sidebarDimension') || 'chapter';
+    const isGrid = localStorage.getItem('sidebarViewMode') === 'grid';
 
-    batches.forEach((batch) => {
-      const group = document.createElement('div');
-      group.className = 'p-nav-date-group';
-
-      const batchProblems = problems.filter(p => batch.problems.some(bp => bp.num === p.num));
-      if (!batchProblems.length) return;
-
-      const header = document.createElement('div');
-      header.className = 'p-nav-date-header';
-      header.innerHTML = `
-        <div class="p-date-title-box">
-          <span>📅 ${batch.date}</span>
-          <span class="p-date-badge">${batchProblems.length} 题</span>
-        </div>
-        <span class="p-date-arrow">▼</span>
-      `;
-      header.addEventListener('click', () => {
-        group.classList.toggle('collapsed');
+    if (dim === 'chapter') {
+      // 📚 按考研章节归属分类
+      const chapterMap = {};
+      problems.forEach((p) => {
+        const ch = p.chapter || '考点专题';
+        if (!chapterMap[ch]) chapterMap[ch] = [];
+        chapterMap[ch].push(p);
       });
-      group.appendChild(header);
 
-      const problemList = document.createElement('div');
-      problemList.className = 'p-nav-problems' + (localStorage.getItem('sidebarViewMode') === 'grid' ? ' grid-mode' : '');
+      const chapterNames = Object.keys(chapterMap);
+      chapterNames.forEach((ch) => {
+        const chProblems = chapterMap[ch];
+        const group = document.createElement('div');
+        group.className = 'p-nav-date-group';
 
-      batchProblems.forEach((p) => {
-        const a = document.createElement('a');
-        a.className = 'p-nav-item';
-        a.href = '#' + p.anchor;
-        a.dataset.anchor = p.anchor;
-        a.title = p.num + '. ' + stripMath(p.title);
-        a.innerHTML = `
-          <span class="p-nav-num">${p.num}</span>
-          <span class="p-nav-text">${stripMath(p.title)}</span>
+        const header = document.createElement('div');
+        header.className = 'p-nav-date-header';
+        header.innerHTML = `
+          <div class="p-date-title-box">
+            <span>📚 ${ch}</span>
+            <span class="p-date-badge">${chProblems.length} 题</span>
+          </div>
+          <span class="p-date-arrow">▼</span>
         `;
-        a.addEventListener('click', (e) => {
-          e.preventDefault();
-          const card = document.getElementById(p.anchor);
-          if (card) {
-            card.classList.add('sop-expanded');
-            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            history.replaceState(null, '', '#' + p.anchor);
-            highlightActiveNavItem(p.anchor);
-          }
-          closeMobileMenu();
+        header.addEventListener('click', () => {
+          group.classList.toggle('collapsed');
         });
-        problemList.appendChild(a);
-      });
+        group.appendChild(header);
 
-      group.appendChild(problemList);
-      nav.appendChild(group);
-    });
+        const problemList = document.createElement('div');
+        problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+        chProblems.forEach((p) => {
+          const a = document.createElement('a');
+          a.className = 'p-nav-item';
+          a.href = '#' + p.anchor;
+          a.dataset.anchor = p.anchor;
+          a.title = p.num + '. ' + stripMath(p.title);
+          a.innerHTML = `
+            <span class="p-nav-num">${p.num}</span>
+            <span class="p-nav-text">${stripMath(p.title)}</span>
+          `;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = document.getElementById(p.anchor);
+            if (card) {
+              card.classList.add('sop-expanded');
+              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              history.replaceState(null, '', '#' + p.anchor);
+              highlightActiveNavItem(p.anchor);
+            }
+            closeMobileMenu();
+          });
+          problemList.appendChild(a);
+        });
+
+        group.appendChild(problemList);
+        nav.appendChild(group);
+      });
+    } else {
+      // 📅 按收录日期归档
+      const batches = (subject.batches && subject.batches.length)
+        ? subject.batches
+        : [{ date: '2026-09-15', problems: problems.map(p => ({ num: p.num, title: p.title, anchor: p.anchor })) }];
+
+      batches.forEach((batch) => {
+        const group = document.createElement('div');
+        group.className = 'p-nav-date-group';
+
+        const batchProblems = problems.filter(p => batch.problems.some(bp => bp.num === p.num));
+        if (!batchProblems.length) return;
+
+        const header = document.createElement('div');
+        header.className = 'p-nav-date-header';
+        header.innerHTML = `
+          <div class="p-date-title-box">
+            <span>📅 ${batch.date}</span>
+            <span class="p-date-badge">${batchProblems.length} 题</span>
+          </div>
+          <span class="p-date-arrow">▼</span>
+        `;
+        header.addEventListener('click', () => {
+          group.classList.toggle('collapsed');
+        });
+        group.appendChild(header);
+
+        const problemList = document.createElement('div');
+        problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+        batchProblems.forEach((p) => {
+          const a = document.createElement('a');
+          a.className = 'p-nav-item';
+          a.href = '#' + p.anchor;
+          a.dataset.anchor = p.anchor;
+          a.title = p.num + '. ' + stripMath(p.title);
+          a.innerHTML = `
+            <span class="p-nav-num">${p.num}</span>
+            <span class="p-nav-text">${stripMath(p.title)}</span>
+          `;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = document.getElementById(p.anchor);
+            if (card) {
+              card.classList.add('sop-expanded');
+              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              history.replaceState(null, '', '#' + p.anchor);
+              highlightActiveNavItem(p.anchor);
+            }
+            closeMobileMenu();
+          });
+          problemList.appendChild(a);
+        });
+
+        group.appendChild(problemList);
+        nav.appendChild(group);
+      });
+    }
   }
 
   function highlightActiveNavItem(anchor) {
@@ -656,9 +756,31 @@
   }
 
   // ────────────────────────────────────────────
-  // Sidebar View Mode (列表 vs 题号矩阵)
+  // Sidebar View Mode (章节/日期 维度 + 列表/矩阵 视图)
   // ────────────────────────────────────────────
   function setupSidebarViewMode() {
+    // 1. 分类维度切换（📚 章节 vs 📅 日期）
+    const dimContainer = $('sidebarDimensionTabs');
+    if (dimContainer) {
+      const setDim = (dim) => {
+        qsa('.p-dim-tab', dimContainer).forEach(b => b.classList.toggle('active', b.dataset.dim === dim));
+        localStorage.setItem('sidebarDimension', dim);
+        const currentSub = manifest && manifest.subjects.find(s => s.id === currentSubjectId);
+        if (currentSub && allProblems.length) {
+          buildSidebar(currentSub, allProblems);
+        }
+        showToast(dim === 'chapter' ? '📚 已切换为按知识点章节分类' : '📅 已切换为按收录日期归档');
+      };
+
+      qsa('.p-dim-tab', dimContainer).forEach(btn => {
+        btn.addEventListener('click', () => setDim(btn.dataset.dim));
+      });
+
+      const savedDim = localStorage.getItem('sidebarDimension') || 'chapter';
+      qsa('.p-dim-tab', dimContainer).forEach(b => b.classList.toggle('active', b.dataset.dim === savedDim));
+    }
+
+    // 2. 视图展示切换（列表 vs 题号矩阵）
     const container = $('sidebarViewMode');
     if (!container) return;
 
