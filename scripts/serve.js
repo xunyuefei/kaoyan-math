@@ -59,9 +59,26 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`\n🚀 [Local Server] 本地极速预览服务已启动: http://localhost:${PORT}`);
-  console.log(`⚡ 提示：本地静态服务无任何网络与构建延迟，内容修改后保存/刷新即生效！\n`);
+function getLocalIp() {
+  const interfaces = require('os').networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
+
+server.listen(PORT, '0.0.0.0', () => {
+  const localIp = getLocalIp();
+  console.log(`\n========================================================================`);
+  console.log(`🚀 [考研数学 SOP 题解站] 跨设备极速静态服务已启动！`);
+  console.log(`💻 电脑浏览器打开: http://localhost:${PORT}/`);
+  console.log(`📱 手机/平板打开 (同一Wi-Fi下): http://${localIp}:${PORT}/`);
+  console.log(`🌐 官方云端发布地址 (免局域网限制): https://xunyuefei.github.io/kaoyan-math/`);
+  console.log(`========================================================================\n`);
 });
 
 module.exports = { server, PORT };

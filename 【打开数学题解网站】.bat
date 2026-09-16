@@ -1,9 +1,22 @@
 @echo off
 cd /d "%~dp0"
-title æ‰“å¼€è€ƒç ”æ•°å­¦é¢˜è§£ç«™
-chcp 65001 >nul 2>&1
+title ¿¼ÑĞÊıÑ§ SOP Ìâ½âÕ¾ - ±¾µØ¼«ËÙÔ¤ÀÀ
 
-echo æ­£åœ¨æ‰“å¼€è€ƒç ”æ•°å­¦ SOP å†³ç­–é¢˜è§£ç«™...
-start "" "https://xunyuefei.github.io/kaoyan-math/"
-start "" "index.html"
+echo ========================================================
+echo   ¿¼ÑĞÊıÑ§ SOP Ìâ½âÕ¾ ¡¤ ÕıÔÚÁ¬½Ó±¾µØ¼«ËÙÔ¤ÀÀ (¶Ë¿Ú 5210)
+echo ========================================================
+echo.
+
+netstat -ano | findstr :5210 | findstr LISTENING >nul 2>&1
+if errorlevel 1 goto start_server
+goto open_browser
+
+:start_server
+echo [Æô¶¯] ÕıÔÚºóÌ¨¿ªÆô±¾µØ¼«ËÙ·şÎñ...
+start /b "" node scripts/serve.js
+ping 127.0.0.1 -n 2 >nul
+
+:open_browser
+echo [´ò¿ª] ÕıÔÚ»½ĞÑä¯ÀÀÆ÷´ò¿ªÊıÑ§Ìâ½âÕ¾: http://localhost:5210/
+start "" "http://localhost:5210/"
 exit /b 0

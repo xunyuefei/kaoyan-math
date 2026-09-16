@@ -1192,3 +1192,66 @@ body.mode-blind-test .p-unmask-btn {
 }
 
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   手机端 KaTeX 公式防爆屏与触控体验自适应
+   ══════════════════════════════════════════════════════════════ */
+.katex-display, .math-display {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 0;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --sidebar-w: min(85vw, 300px);
+  }
+  .p-header {
+    padding: 0 10px;
+  }
+  .p-brand-title {
+    font-size: 14px;
+  }
+  .p-badge-preview {
+    display: none;
+  }
+  .p-subject-tabs {
+    padding: 2px;
+  }
+  .p-tab-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .p-main {
+    padding: 12px 10px 60px;
+  }
+  .p-content-toolbar {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border-radius: var(--r-md);
+  }
+  .p-content-info h2 {
+    font-size: 16px;
+  }
+  .p-control-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+    min-height: 40px;
+  }
+  .p-problem-card {
+    padding: 16px 14px;
+    margin-bottom: 16px;
+    border-radius: var(--r-md);
+  }
+  .p-problem-title {
+    font-size: 15.5px;
+    line-height: 1.5;
+  }
+  .p-sop-step {
+    padding: 12px 12px;
+    margin-bottom: 12px;
+  }
+}
