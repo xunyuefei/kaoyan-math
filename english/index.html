@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>考研英语红宝书 · 全景深度特训讲义站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: #1e293b;
+    --bg-hover: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent-blue: #3b82f6;
+    --accent-indigo: #6366f1;
+    --accent-green: #10b981;
+    --sidebar-w: 320px;
+    --header-h: 52px;
+  }
+  [data-theme="light"] {
+    --bg-primary: #f1f5f9;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-hover: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    height: var(--header-h);
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    z-index: 100;
+  }
+
+  /* 侧边栏显隐切换按钮（用时呼出，不用隐藏） */
+  .sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .sidebar-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+  .sidebar-toggle-btn.active {
+    background: #fff;
+    color: #1e3a8a;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14.5px;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .header-brand .icon { font-size: 18px; }
+
+  /* 顶部三大学科分类 Tab 切换器 */
+  .category-tabs {
+    display: flex;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.22);
+    padding: 3px;
+    border-radius: 9px;
+    margin-left: 8px;
+  }
+  .cat-tab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+  }
+  .cat-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .cat-tab.active {
+    background: #fff;
+    color: #1e3a8a;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .cat-tab .badge-count {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.15);
+  }
+  .cat-tab.active .badge-count {
+    background: #e0e7ff;
+    color: #1e40af;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .theme-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .theme-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ─── Main Layout ─── */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ─── 抽屉式自适应侧边栏 (Drawer Sidebar) ─── */
+  .sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    background: var(--bg-secondary);
+    border-right: 1px solid rgba(148,163,184,0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* 侧边栏展开时的背景遮罩（点击即可收起导航） */
+  .sidebar-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar-header {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .sidebar-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .sidebar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .view-toggle {
+    display: flex;
+    background: var(--bg-hover);
+    padding: 2px;
+    border-radius: 6px;
+    gap: 2px;
+  }
+  .view-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 2px 7px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .view-btn.active {
+    background: var(--bg-card);
+    color: var(--accent-blue);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .close-sidebar-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .close-sidebar-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+  }
+
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  .sidebar-content::-webkit-scrollbar { width: 4px; }
+  .sidebar-content::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 4px; }
+
+  /* ─── 视图 1：自测打卡矩阵 (Grid Matrix View) ─── */
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .matrix-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 8px;
+    padding: 9px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .matrix-card:hover {
+    border-color: var(--accent-blue);
+    background: rgba(59,130,246,0.08);
+    transform: translateY(-1px);
+  }
+  .matrix-card.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+  }
+  .matrix-card .m-num {
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .matrix-card .m-label {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+  .matrix-card.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ─── 视图 2：详细列表 (List View) ─── */
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 12.5px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+  .nav-item:hover {
+    background: rgba(59,130,246,0.08);
+    border-color: rgba(59,130,246,0.15);
+  }
+  .nav-item.active {
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.3);
+    color: var(--accent-blue);
+    font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.15);
+  }
+  .nav-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .nav-num {
+    width: 32px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    color: #fff;
+  }
+  .nav-num.phrase {
+    background: linear-gradient(135deg, #0284c7, #06b6d4);
+  }
+  .nav-num.special {
+    background: linear-gradient(135deg, #059669, #10b981);
+  }
+  .nav-label { flex: 1; line-height: 1.3; }
+  .nav-label small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+  .nav-badge {
+    font-size: 9.5px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .nav-badge.ready { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .nav-badge.pending { background: rgba(148,163,184,0.12); color: var(--text-secondary); }
+
+  /* ─── 悬浮快捷呼出胶囊 (Floating Trigger Pill) ─── */
+  .floating-nav-pill {
+    position: absolute;
+    left: 14px;
+    bottom: 20px;
+    background: rgba(30, 58, 138, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 35;
+    transition: all 0.2s;
+  }
+  .floating-nav-pill:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
+
+  /* ─── Content Area (100% 满屏阅读) ─── */
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-primary);
+    width: 100%;
+  }
+  .content-toolbar {
+    height: 40px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .toolbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toolbar-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tool-btn {
+    background: var(--bg-hover);
+    border: none;
+    color: var(--text-primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tool-btn:hover { background: var(--accent-blue); color: #fff; }
+  .tool-btn.special-link {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+  }
+  .tool-btn.special-link:hover {
+    background: #10b981;
+    color: #fff;
+  }
+
+  .content-frame-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+  }
+  .content-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #ffffff;
+  }
+
+  /* ─── Welcome Screen ─── */
+  .welcome-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 40px;
+    text-align: center;
+    background: var(--bg-primary);
+  }
+  .welcome-icon { font-size: 56px; margin-bottom: 18px; }
+  .welcome-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .welcome-desc {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    max-width: 480px;
+    line-height: 1.65;
+  }
+  .welcome-cards {
+    display: flex;
+    gap: 18px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .wc {
+    background: var(--bg-card);
+    border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 12px;
+    padding: 16px 22px;
+    text-align: center;
+    min-width: 130px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .wc:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-blue);
+  }
+  .wc .n { font-size: 24px; font-weight: 800; color: var(--accent-blue); }
+  .wc .l { font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <!-- 展开/收起目录主开关（用时显现，不用隐藏） -->
+  <button class="sidebar-toggle-btn" id="sidebarToggle" title="展开/收起讲义目录导航">
+    <span>📑</span>
+    <span id="toggleText">目录导航</span>
+  </button>
+
+  <div class="header-brand" id="brandHome" title="返回主页">
+    <span class="icon">📕</span>
+    <span>考研英语红宝书特训站</span>
+  </div>
+
+  <!-- 顶部三大分类可点击 Tab 按钮 -->
+  <div class="category-tabs">
+    <button class="cat-tab active" data-cat="vocab" id="tabVocab">
+      <span>📕 单词</span>
+      <span class="badge-count" id="countVocab">22</span>
+    </button>
+    <button class="cat-tab" data-cat="phrase" id="tabPhrase">
+      <span>📘 词组</span>
+      <span class="badge-count" id="countPhrase">2</span>
+    </button>
+    <button class="cat-tab" data-cat="special" id="tabSpecial">
+      <span>📗 专项特训</span>
+      <span class="badge-count" id="countSpecial">2</span>
+    </button>
+  </div>
+
+  <div class="header-actions">
+    <button class="theme-btn" id="themeToggle" title="切换主题">🌙</button>
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- 背景遮罩：点击任意空白处自动收起侧边栏 -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- 抽屉式侧边栏 -->
+  <nav class="sidebar" id="sidebarNav">
+    <div class="sidebar-header">
+      <span class="sidebar-title" id="sidebarSectionTitle">词汇打卡矩阵</span>
+      <div class="sidebar-controls">
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnViewGrid" title="四列打卡矩阵">矩阵</button>
+          <button class="view-btn" id="btnViewList" title="详细列表">列表</button>
+        </div>
+        <button class="close-sidebar-btn" id="btnCloseSidebar" title="收起导航">✕</button>
+      </div>
+    </div>
+    <div class="sidebar-content" id="sidebarContent">
+      <!-- 动态渲染 Matrix 或 List -->
+    </div>
+  </nav>
+
+  <!-- 左下角常驻悬浮呼出胶囊：阅读时随时轻轻一碰即可打开导航 -->
+  <button class="floating-nav-pill" id="floatingNavBtn" title="呼出单元打卡矩阵 (快捷键: M)">
+    <span>⚡</span>
+    <span>快速换单元</span>
+  </button>
+
+  <!-- 100% 满屏沉浸式阅读区域 -->
+  <main class="content-area">
+    <div class="content-toolbar" id="contentToolbar" style="display:none;">
+      <span class="toolbar-title" id="toolbarTitle"></span>
+      <div class="toolbar-actions">
+        <!-- 上一单元 / 下一单元直达 -->
+        <button class="tool-btn" id="btnPrevUnit" title="上一单元">◀ 上一单元</button>
+        <button class="tool-btn" id="btnNextUnit" title="下一单元">下一单元 ▶</button>
+        <!-- 跨 List 特训穿梭互通按钮 -->
+        <button class="tool-btn special-link" id="btnJumpSpecial" title="直达全景母题特训">📚 穿梭话题特训 ↗</button>
+      </div>
+    </div>
+    <div class="content-frame-wrapper">
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-icon">📖</div>
+        <div class="welcome-title">全景深度特训讲义在线阅读</div>
+        <div class="welcome-desc">
+          ✨ 导航栏采用「用时呼出、不用隐藏」的全屏沉浸式设计<br>
+          点击左上角「目录导航」或左下角「快速换单元」即可随时挑选单元<br>
+          100% 还原 PDF 排版 · 红蓝双色词卡 · 矩阵式自测 · 无需下载
+        </div>
+        <div class="welcome-cards">
+          <div class="wc" onclick="openAndSwitch('vocab')">
+            <div class="n" id="wcVocab">22</div>
+            <div class="l">📕 单词打卡</div>
+          </div>
+          <div class="wc" onclick="openAndSwitch('phrase')">
+            <div class="n" id="wcPhrase">2</div>
+            <div class="l">📘 词组特训</div>
+          </div>
+          <div class="wc" onclick="openAndSwitch('special')">
+            <div class="n" id="wcSpecial">2</div>
+            <div class="l">📗 专项特训</div>
+          </div>
+        </div>
+      </div>
+      <iframe class="content-frame" id="contentFrame" style="display:none;"></iframe>
+    </div>
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  let currentCategory = 'vocab'; // 'vocab' | 'phrase' | 'special'
+  let currentViewMode = 'grid'; // 'grid' | 'list'
+  let currentId = null;
+  let manifestData = null;
+  let sidebarIsOpen = false;
+
+  const defaultManifest = {
+    vocabLists: Array.from({ length: 22 }, (_, i) => {
+      const num = String(i + 1).padStart(2, '0');
+      return { id: `list-${num}`, num, label: `List ${num}`, sublabel: `60 词 · 4 Batch`, file: `content/list-${num}.html`, type: 'vocab', ready: true };
+    }),
+    phraseLists: [
+      { id: 'phrase-01', num: '01', label: '词组 List 01', sublabel: '常考词组 · 深度精排', file: 'content/phrase-list-01.html', type: 'phrase', ready: true },
+      { id: 'phrase-02', num: '02', label: '词组 List 02', sublabel: '常考词组 · 深度精排', file: 'content/phrase-list-02.html', type: 'phrase', ready: true }
+    ],
+    specials: [
+      { id: 'topics', num: '话题', label: '全景话题特训', sublabel: '主题词群 · 场景关联', file: 'content/topics.html', type: 'special', ready: true },
+      { id: 'reading', num: '态势', label: '阅读情感态度特训', sublabel: '情感词 · 态度判断', file: 'content/reading.html', type: 'special', ready: true }
+    ]
+  };
+
+  // 侧边栏显隐控制
+  function toggleSidebar(forceState) {
+    sidebarIsOpen = (typeof forceState === 'boolean') ? forceState : !sidebarIsOpen;
+    const sidebar = document.getElementById('sidebarNav');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const toggleBtn = document.getElementById('sidebarToggle');
+
+    sidebar.classList.toggle('open', sidebarIsOpen);
+    backdrop.classList.toggle('show', sidebarIsOpen);
+    toggleBtn.classList.toggle('active', sidebarIsOpen);
+  }
+
+  window.openAndSwitch = function(cat) {
+    switchCategory(cat);
+    toggleSidebar(true);
+  };
+
+  async function fetchManifest() {
+    try {
+      const res = await fetch('manifest.json?t=' + Date.now());
+      if (res.ok) return await res.json();
+    } catch(e) {}
+    return defaultManifest;
+  }
+
+  function getItemsByCategory(cat) {
+    if (!manifestData) return [];
+    if (cat === 'vocab') return manifestData.vocabLists || [];
+    if (cat === 'phrase') return manifestData.phraseLists || [];
+    if (cat === 'special') return manifestData.specials || [];
+    return [];
+  }
+
+  function getAllItems() {
+    if (!manifestData) return [];
+    return [
+      ...(manifestData.vocabLists || []),
+      ...(manifestData.phraseLists || []),
+      ...(manifestData.specials || [])
+    ];
+  }
+
+  // 渲染侧边栏内容
+  function renderSidebar() {
+    const container = document.getElementById('sidebarContent');
+    container.innerHTML = '';
+    const items = getItemsByCategory(currentCategory);
+
+    const titleMap = {
+      vocab: '📕 核心词汇打卡矩阵',
+      phrase: '📘 四六级词组打卡矩阵',
+      special: '📗 专题专项讲义'
+    };
+    document.getElementById('sidebarSectionTitle').textContent = titleMap[currentCategory] || '讲义导航';
+
+    if (currentViewMode === 'grid') {
+      const grid = document.createElement('div');
+      grid.className = 'matrix-grid';
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'matrix-card' + (currentId === item.id ? ' active' : '') + (!item.ready ? ' disabled' : '');
+        card.innerHTML = `
+          <div class="m-num">${item.num}</div>
+          <div class="m-label">${item.type === 'phrase' ? '词组' : (item.type === 'special' ? '专项' : 'List')}</div>
+        `;
+        card.addEventListener('click', () => {
+          if (!item.ready) return;
+          loadContent(item);
+          // 选中后自动收起侧边栏，带来满屏阅读体验！
+          toggleSidebar(false);
+        });
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    } else {
+      const list = document.createElement('div');
+      list.className = 'nav-list';
+      items.forEach(item => {
+        const el = document.createElement('a');
+        el.className = 'nav-item' + (currentId === item.id ? ' active' : '') + (!item.ready ? ' disabled' : '');
+        el.href = '#' + item.id;
+        el.innerHTML = `
+          <span class="nav-num ${item.type}">${item.num}</span>
+          <span class="nav-label">${item.label}<small>${item.sublabel}</small></span>
+          <span class="nav-badge ${item.ready ? 'ready' : 'pending'}">${item.ready ? '可读' : '待入'}</span>
+        `;
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (!item.ready) return;
+          loadContent(item);
+          toggleSidebar(false);
+        });
+        list.appendChild(el);
+      });
+      container.appendChild(list);
+    }
+  }
+
+  // 切换分类 Tab
+  window.switchCategory = function(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.cat === cat);
+    });
+    renderSidebar();
+  };
+
+  // 切换视图模式
+  function switchView(mode) {
+    currentViewMode = mode;
+    document.getElementById('btnViewGrid').classList.toggle('active', mode === 'grid');
+    document.getElementById('btnViewList').classList.toggle('active', mode === 'list');
+    renderSidebar();
+  }
+
+  // 加载具体讲义
+  function loadContent(item) {
+    currentId = item.id;
+    location.hash = item.id;
+
+    if (item.type !== currentCategory) {
+      currentCategory = item.type;
+      document.querySelectorAll('.cat-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.cat === item.type);
+      });
+    }
+
+    renderSidebar();
+
+    document.getElementById('welcomeScreen').style.display = 'none';
+    document.getElementById('contentToolbar').style.display = 'flex';
+    document.getElementById('toolbarTitle').textContent = `📖 ${item.label} · 全景深度特训讲义`;
+
+    const frame = document.getElementById('contentFrame');
+    frame.style.display = 'block';
+    frame.src = item.file;
+  }
+
+  // 上下单元切换逻辑
+  function stepUnit(step) {
+    const list = getItemsByCategory(currentCategory).filter(x => x.ready);
+    if (!list.length) return;
+    const idx = list.findIndex(x => x.id === currentId);
+    let nextIdx = idx + step;
+    if (nextIdx < 0) nextIdx = list.length - 1;
+    if (nextIdx >= list.length) nextIdx = 0;
+    loadContent(list[nextIdx]);
+  }
+
+  // iframe 内部穿梭链接劫持（实现全站无缝互通！）
+  const frame = document.getElementById('contentFrame');
+  frame.addEventListener('load', function() {
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (!doc) return;
+      // 监听 iframe 内部所有指向全景话题特训的穿梭链接
+      const links = doc.querySelectorAll('a[href*="话题特训"]');
+      links.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const topicsItem = (manifestData.specials || []).find(x => x.id === 'topics');
+          if (topicsItem) loadContent(topicsItem);
+        });
+      });
+    } catch(e) {
+      // 跨源保护忽略
+    }
+  });
+
+  // 初始化
+  fetchManifest().then(data => {
+    manifestData = data;
+
+    const vCount = (data.vocabLists || []).filter(x => x.ready).length;
+    const pCount = (data.phraseLists || []).filter(x => x.ready).length;
+    const sCount = (data.specials || []).filter(x => x.ready).length;
+
+    document.getElementById('countVocab').textContent = vCount;
+    document.getElementById('countPhrase').textContent = pCount;
+    document.getElementById('countSpecial').textContent = sCount;
+
+    const wcV = document.getElementById('wcVocab'); if(wcV) wcV.textContent = vCount;
+    const wcP = document.getElementById('wcPhrase'); if(wcP) wcP.textContent = pCount;
+    const wcS = document.getElementById('wcSpecial'); if(wcS) wcS.textContent = sCount;
+
+    if (location.hash) {
+      const targetId = location.hash.slice(1);
+      const all = getAllItems();
+      const target = all.find(l => l.id === targetId && l.ready);
+      if (target) {
+        loadContent(target);
+        return;
+      }
+    }
+
+    renderSidebar();
+  });
+
+  // 事件监听绑定
+  document.getElementById('sidebarToggle').addEventListener('click', () => toggleSidebar());
+  document.getElementById('floatingNavBtn').addEventListener('click', () => toggleSidebar(true));
+  document.getElementById('sidebarBackdrop').addEventListener('click', () => toggleSidebar(false));
+  document.getElementById('btnCloseSidebar').addEventListener('click', () => toggleSidebar(false));
+
+  document.querySelectorAll('.cat-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      switchCategory(b.dataset.cat);
+      toggleSidebar(true);
+    });
+  });
+
+  document.getElementById('btnViewGrid').addEventListener('click', () => switchView('grid'));
+  document.getElementById('btnViewList').addEventListener('click', () => switchView('list'));
+
+  document.getElementById('btnPrevUnit').addEventListener('click', () => stepUnit(-1));
+  document.getElementById('btnNextUnit').addEventListener('click', () => stepUnit(1));
+  document.getElementById('btnJumpSpecial').addEventListener('click', () => {
+    const topicsItem = (manifestData.specials || []).find(x => x.id === 'topics');
+    if (topicsItem) loadContent(topicsItem);
+  });
+
+  document.getElementById('brandHome').addEventListener('click', () => {
+    location.hash = '';
+    currentId = null;
+    document.getElementById('welcomeScreen').style.display = 'flex';
+    document.getElementById('contentToolbar').style.display = 'none';
+    document.getElementById('contentFrame').style.display = 'none';
+    toggleSidebar(false);
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    const isDark = !document.documentElement.hasAttribute('data-theme');
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'light');
+      this.textContent = '☀️';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      this.textContent = '🌙';
+    }
+  });
+
+  // 键盘快捷键支持：按 M 唤出目录，按 ESC 收起目录
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'm' || e.key === 'M') {
+      toggleSidebar();
+    } else if (e.key === 'Escape' && sidebarIsOpen) {
+      toggleSidebar(false);
+    }
+  });
+})();
+</script>
+</body>
+</html>
