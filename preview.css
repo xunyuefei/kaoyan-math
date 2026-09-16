@@ -143,18 +143,38 @@ body {
   gap: 16px;
 }
 .p-menu-btn {
-  display: none;
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 6px 10px;
+  border-radius: var(--r-md);
+  padding: 6px 12px;
   cursor: pointer;
   color: var(--text-main);
-  font-size: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all .2s var(--ease);
+  user-select: none;
 }
-@media (max-width: 900px) {
-  .p-menu-btn { display: flex; }
+.p-menu-btn:hover {
+  border-color: var(--border-focus);
+  background: var(--surface-hover);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
+.p-menu-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.p-menu-text {
+  font-size: 12.5px;
+}
+@media (max-width: 480px) {
+  .p-menu-text { display: none; }
+  .p-menu-btn { padding: 6px 9px; }
+}
+
 
 .p-brand {
   display: flex;
@@ -257,14 +277,129 @@ body {
   z-index: 90;
   display: flex;
   flex-direction: column;
-  transition: transform .3s var(--ease);
+  transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* 侧边栏顶部控制栏 */
+.p-sidebar-header {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.p-sidebar-title-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.p-sidebar-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.p-sidebar-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.p-sidebar-mini-action {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .15s ease;
+  user-select: none;
+}
+.p-sidebar-mini-action:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--surface);
+}
+.p-sidebar-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  line-height: 1;
+  transition: all .15s ease;
+}
+.p-sidebar-close-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-subtle);
+}
+
+/* 侧边栏遮罩 (移动端或抽屉唤出) */
+.p-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 85;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.p-sidebar-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 桌面端自由伸缩 */
+@media (min-width: 901px) {
+  body.sidebar-collapsed .p-sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+  .p-main {
+    margin-left: var(--sidebar-w);
+    transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body.sidebar-collapsed .p-main {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1120px;
+  }
+  body.sidebar-collapsed .p-floating-nav-pill {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  body:not(.sidebar-collapsed) .p-floating-nav-pill {
+    display: none;
+  }
+}
+
+/* 移动端 (<= 900px) */
 @media (max-width: 900px) {
   .p-sidebar {
     transform: translateX(-100%);
     box-shadow: var(--shadow-lg);
+    z-index: 120;
   }
-  .p-sidebar.open { transform: translateX(0); }
+  .p-sidebar.open {
+    transform: translateX(0);
+  }
+  .p-main {
+    margin-left: 0;
+  }
+  .p-floating-nav-pill {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .p-sidebar-search {
@@ -514,6 +649,7 @@ body {
   padding: 28px 36px 90px;
   max-width: 1080px;
   margin-right: auto;
+  transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 @media (max-width: 900px) {
   .p-main {
@@ -1255,3 +1391,50 @@ body.mode-blind-test .p-unmask-btn {
     margin-bottom: 12px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   悬浮快捷呼出胶囊 (Floating Nav Pill · 对齐英语站自由伸缩)
+   ══════════════════════════════════════════════════════════════ */
+.p-floating-nav-pill {
+  position: fixed;
+  left: 20px;
+  bottom: 24px;
+  background: rgba(30, 58, 138, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  z-index: 80;
+  transition: all .2s var(--ease);
+  user-select: none;
+}
+[data-theme="dark"] .p-floating-nav-pill {
+  background: rgba(37, 99, 235, 0.92);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.p-floating-nav-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+  background: #2563eb;
+}
+.p-floating-nav-pill:active {
+  transform: translateY(0);
+}
+@media (max-width: 640px) {
+  .p-floating-nav-pill {
+    left: 14px;
+    bottom: 20px;
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+}
+

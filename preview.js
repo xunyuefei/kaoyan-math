@@ -21,7 +21,7 @@
   // ────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
-    setupMobileMenu();
+    setupSidebar();
     setupSearch();
     setupGlobalControls();
     setupLazyMathObserver();
@@ -537,10 +537,18 @@
         if (!orderedChapters.includes(ch)) orderedChapters.push(ch);
       });
 
-      orderedChapters.forEach((ch) => {
+      const targetAnchor = location.hash ? location.hash.slice(1) : '';
+
+      orderedChapters.forEach((ch, index) => {
         const chProblems = chapterMap[ch];
         const group = document.createElement('div');
         group.className = 'p-nav-date-group';
+
+        // 智能折叠判定：若存在多章，仅展开包含当前目标题目的章节（或第一章），其余折叠以大幅节省纵向空间
+        const containsTarget = Boolean(targetAnchor && chProblems.some(p => p.anchor === targetAnchor));
+        if (orderedChapters.length > 1 && !containsTarget && index > 0) {
+          group.classList.add('collapsed');
+        }
 
         const header = document.createElement('div');
         header.className = 'p-nav-date-header';
@@ -553,6 +561,7 @@
         `;
         header.addEventListener('click', () => {
           group.classList.toggle('collapsed');
+          updateToggleAllBtnState();
         });
         group.appendChild(header);
 
@@ -601,10 +610,17 @@
         if (!orderedSources.includes(s)) orderedSources.push(s);
       });
 
-      orderedSources.forEach((src) => {
+      const targetAnchor = location.hash ? location.hash.slice(1) : '';
+
+      orderedSources.forEach((src, index) => {
         const srcProblems = sourceMap[src];
         const group = document.createElement('div');
         group.className = 'p-nav-date-group';
+
+        const containsTarget = Boolean(targetAnchor && srcProblems.some(p => p.anchor === targetAnchor));
+        if (orderedSources.length > 1 && !containsTarget && index > 0) {
+          group.classList.add('collapsed');
+        }
 
         const header = document.createElement('div');
         header.className = 'p-nav-date-header';
@@ -617,6 +633,7 @@
         `;
         header.addEventListener('click', () => {
           group.classList.toggle('collapsed');
+          updateToggleAllBtnState();
         });
         group.appendChild(header);
 
@@ -656,12 +673,19 @@
         ? subject.batches
         : [{ date: '2026-09-15', problems: problems.map(p => ({ num: p.num, title: p.title, anchor: p.anchor })) }];
 
-      batches.forEach((batch) => {
+      const targetAnchor = location.hash ? location.hash.slice(1) : '';
+
+      batches.forEach((batch, index) => {
         const group = document.createElement('div');
         group.className = 'p-nav-date-group';
 
         const batchProblems = problems.filter(p => batch.problems.some(bp => bp.num === p.num));
         if (!batchProblems.length) return;
+
+        const containsTarget = Boolean(targetAnchor && batchProblems.some(p => p.anchor === targetAnchor));
+        if (batches.length > 1 && !containsTarget && index > 0) {
+          group.classList.add('collapsed');
+        }
 
         const header = document.createElement('div');
         header.className = 'p-nav-date-header';
@@ -674,6 +698,7 @@
         `;
         header.addEventListener('click', () => {
           group.classList.toggle('collapsed');
+          updateToggleAllBtnState();
         });
         group.appendChild(header);
 
@@ -708,12 +733,33 @@
         nav.appendChild(group);
       });
     }
+
+    updateToggleAllBtnState();
   }
 
   function highlightActiveNavItem(anchor) {
     qsa('.p-nav-item', $('sidebarNav')).forEach((item) => {
-      item.classList.toggle('active', item.dataset.anchor === anchor);
+      const isActive = item.dataset.anchor === anchor;
+      item.classList.toggle('active', isActive);
+      if (isActive) {
+        const group = item.closest('.p-nav-date-group');
+        if (group && group.classList.contains('collapsed')) {
+          group.classList.remove('collapsed');
+          updateToggleAllBtnState();
+        }
+        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
     });
+  }
+
+  function updateToggleAllBtnState() {
+    const btn = $('toggleAllGroupsBtn');
+    if (!btn) return;
+    const groups = qsa('.p-nav-date-group', $('sidebarNav'));
+    if (!groups.length) return;
+    const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+    btn.textContent = allCollapsed ? '📂 全部展开' : '📁 全部折叠';
+    btn.title = allCollapsed ? '展开所有章节分组' : '折叠所有章节分组';
   }
 
   // ────────────────────────────────────────────
@@ -848,20 +894,108 @@
   }
 
   // ────────────────────────────────────────────
-  // Mobile Drawer
+  // Sidebar Controller (自由伸缩 + 抽屉 + 快捷键)
   // ────────────────────────────────────────────
-  function setupMobileMenu() {
-    const btn = $('menuBtn');
-    if (btn) {
-      btn.addEventListener('click', () => {
+  let sidebarCollapsedDesktop = localStorage.getItem('mathSidebarCollapsed') === 'true';
+
+  function setupSidebar() {
+    const menuBtn = $('menuBtn');
+    const closeBtn = $('closeSidebarBtn');
+    const backdrop = $('sidebarBackdrop');
+    const floatingBtn = $('floatingNavBtn');
+    const dockNavBtn = $('dockNavBtn');
+    const toggleAllBtn = $('toggleAllGroupsBtn');
+
+    // 恢复桌面端收起偏好
+    if (window.innerWidth > 900) {
+      if (sidebarCollapsedDesktop) {
+        document.body.classList.add('sidebar-collapsed');
+      }
+    }
+
+    const toggleSidebar = (forceOpen) => {
+      const isMobile = window.innerWidth <= 900;
+      const sb = $('sidebar');
+      const bd = $('sidebarBackdrop');
+      if (isMobile) {
+        const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !sb.classList.contains('open');
+        sb.classList.toggle('open', shouldOpen);
+        if (bd) bd.classList.toggle('show', shouldOpen);
+      } else {
+        const willCollapse = typeof forceOpen === 'boolean' ? !forceOpen : !document.body.classList.contains('sidebar-collapsed');
+        document.body.classList.toggle('sidebar-collapsed', willCollapse);
+        sidebarCollapsedDesktop = willCollapse;
+        localStorage.setItem('mathSidebarCollapsed', willCollapse ? 'true' : 'false');
+      }
+    };
+
+    const closeSidebar = () => {
+      const isMobile = window.innerWidth <= 900;
+      if (isMobile) {
         const sb = $('sidebar');
-        if (sb) sb.classList.toggle('open');
+        const bd = $('sidebarBackdrop');
+        if (sb) sb.classList.remove('open');
+        if (bd) bd.classList.remove('show');
+      } else {
+        document.body.classList.add('sidebar-collapsed');
+        sidebarCollapsedDesktop = true;
+        localStorage.setItem('mathSidebarCollapsed', 'true');
+      }
+    };
+
+    const openSidebar = () => {
+      const isMobile = window.innerWidth <= 900;
+      if (isMobile) {
+        const sb = $('sidebar');
+        const bd = $('sidebarBackdrop');
+        if (sb) sb.classList.add('open');
+        if (bd) bd.classList.add('show');
+      } else {
+        document.body.classList.remove('sidebar-collapsed');
+        sidebarCollapsedDesktop = false;
+        localStorage.setItem('mathSidebarCollapsed', 'false');
+      }
+    };
+
+    if (menuBtn) menuBtn.addEventListener('click', () => toggleSidebar());
+    if (closeBtn) closeBtn.addEventListener('click', () => closeSidebar());
+    if (backdrop) backdrop.addEventListener('click', () => closeSidebar());
+    if (floatingBtn) floatingBtn.addEventListener('click', () => openSidebar());
+    if (dockNavBtn) dockNavBtn.addEventListener('click', () => toggleSidebar());
+
+    // 快捷键支持：按 M 唤出/收起目录，按 ESC 收起目录
+    window.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleSidebar();
+      } else if (e.key === 'Escape') {
+        closeSidebar();
+      }
+    });
+
+    // 全部折叠 / 全部展开
+    if (toggleAllBtn) {
+      toggleAllBtn.addEventListener('click', () => {
+        const groups = qsa('.p-nav-date-group', $('sidebarNav'));
+        if (!groups.length) return;
+        const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+        groups.forEach(g => {
+          g.classList.toggle('collapsed', !allCollapsed);
+        });
+        updateToggleAllBtnState();
       });
     }
   }
+
   function closeMobileMenu() {
-    const sb = $('sidebar');
-    if (sb) sb.classList.remove('open');
+    const isMobile = window.innerWidth <= 900;
+    if (isMobile) {
+      const sb = $('sidebar');
+      const bd = $('sidebarBackdrop');
+      if (sb) sb.classList.remove('open');
+      if (bd) bd.classList.remove('show');
+    }
   }
 
   // ────────────────────────────────────────────

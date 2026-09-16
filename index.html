@@ -9,7 +9,7 @@
   <!-- KaTeX CSS -->
   <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
   <!-- Modern Academic CSS -->
-  <link rel="stylesheet" href="preview.css?v=20260915_v3">
+  <link rel="stylesheet" href="preview.css?v=20260917_v1">
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
@@ -19,7 +19,10 @@
   <!-- ===== Header ===== -->
   <header class="p-header" id="header">
     <div class="p-header-left">
-      <button class="p-menu-btn" id="menuBtn" aria-label="展开导航菜单">☰</button>
+      <button class="p-menu-btn" id="menuBtn" aria-label="展开或收起目录" title="展开或收起目录 (快捷键 M)">
+        <span class="p-menu-icon">☰</span>
+        <span class="p-menu-text">目录</span>
+      </button>
       <div class="p-brand">
         <span class="p-brand-logo">📐</span>
         <span class="p-brand-title">考研数学 SOP</span>
@@ -41,6 +44,15 @@
   <div class="p-layout">
     <!-- Sidebar -->
     <aside class="p-sidebar" id="sidebar">
+      <div class="p-sidebar-header">
+        <div class="p-sidebar-title-box">
+          <span class="p-sidebar-title">题解导航目录</span>
+        </div>
+        <div class="p-sidebar-header-controls">
+          <button class="p-sidebar-mini-action" id="toggleAllGroupsBtn" title="全部折叠/展开章节">📁 全部折叠</button>
+          <button class="p-sidebar-close-btn" id="closeSidebarBtn" title="收起目录 (快捷键 ESC)">✕</button>
+        </div>
+      </div>
       <div class="p-sidebar-search">
         <div class="p-search-wrapper">
           <span class="p-search-icon">🔍</span>
@@ -62,6 +74,9 @@
         <!-- Date groups and items injected by preview.js -->
       </nav>
     </aside>
+
+    <!-- Sidebar Backdrop (移动端/抽屉遮罩) -->
+    <div class="p-sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- Main Content -->
     <main class="p-main" id="mainContent">
@@ -95,8 +110,15 @@
     </main>
   </div>
 
+  <!-- Floating Nav Pill (快速呼出目录胶囊，对齐英语站体验) -->
+  <button class="p-floating-nav-pill" id="floatingNavBtn" title="展开目录 (快捷键 M)">
+    <span>📚</span>
+    <span>目录</span>
+  </button>
+
   <!-- Floating Quick Dock -->
   <div class="p-floating-dock" id="floatingDock">
+    <button class="p-dock-btn" id="dockNavBtn" title="展开/收起目录 (快捷键 M)">📚</button>
     <button class="p-dock-btn" id="dockBlindBtn" title="切换自测模式">🙈</button>
     <button class="p-dock-btn" id="dockExpandBtn" title="切换全部展开/折叠">📖</button>
     <button class="p-dock-btn" id="dockTopBtn" title="返回顶部">▲</button>
@@ -108,6 +130,6 @@
   <!-- Scripts -->
   <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
   <script src="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script src="preview.js?v=20260915_v3"></script>
+  <script src="preview.js?v=20260917_v1"></script>
 </body>
 </html>
