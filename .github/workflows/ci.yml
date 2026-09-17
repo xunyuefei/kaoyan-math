@@ -1,0 +1,38 @@
+name: 📐 Math Knowledge Base CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    name: 验证题解完整性与大纲一致性
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码仓库
+        uses: actions/checkout@v4
+
+      - name: 配置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 配置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 安装 Node 依赖 (如有)
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: 运行大纲同步与缓存破除校验
+        run: |
+          npm run sync
+
+      - name: 运行数学题解自动化完整性测试
+        run: |
+          python tests/test_math_integrity.py
