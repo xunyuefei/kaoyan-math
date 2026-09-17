@@ -121,6 +121,27 @@ def test_manifest_consistency(seen_anchors):
     except Exception as e:
         assert False, f"manifest.json 校验失败: {e}"
 
+def test_pwa_readiness():
+    print("\n[6/6] 正在检验 PWA 渐进式 Web 应用配置完整性...")
+    pwa_manifest = ROOT_DIR / "manifest.webmanifest"
+    sw_file = ROOT_DIR / "sw.js"
+    offline_file = ROOT_DIR / "offline.html"
+    icons_dir = ROOT_DIR / "icons"
+
+    assert pwa_manifest.exists(), "缺少 manifest.webmanifest"
+    assert sw_file.exists(), "缺少 sw.js"
+    assert offline_file.exists(), "缺少 offline.html"
+
+    m_data = json.loads(pwa_manifest.read_text(encoding='utf-8'))
+    assert m_data.get("display") == "standalone", f"PWA display 必须为 standalone，实际为 {m_data.get('display')}"
+    assert m_data.get("start_url") == "./", f"start_url 必须为 ./，实际为 {m_data.get('start_url')}"
+
+    for ic in ["icon-192.png", "icon-512.png", "icon-maskable.png", "apple-touch-icon.png", "favicon.png"]:
+        ic_p = icons_dir / ic
+        assert ic_p.exists() and ic_p.stat().st_size > 500, f"缺少有效 PWA 图标: {ic}"
+
+    print("  [✓] PWA 清单、Service Worker、离线页与全套高清图标 100% 就绪！")
+
 def main():
     print("===========================================================================")
     print("  📐 考研数学 SOP 题解知识库 · 数据完整性与工程合规自动化测试")
@@ -131,8 +152,9 @@ def main():
         test_layer_formatting()
         test_chapter_taxonomy()
         test_manifest_consistency(anchors)
+        test_pwa_readiness()
         print("\n" + "=" * 75)
-        print("  🎉 全部 5 项自动化测试 100% PASS！数学知识库数据完好无损！")
+        print("  🎉 全部 6 项自动化测试 100% PASS！数学知识库与 PWA 设施完美合规！")
         print("===========================================================================")
         sys.exit(0)
     except AssertionError as e:

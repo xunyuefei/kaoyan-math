@@ -11,8 +11,16 @@
   <!-- Modern Academic CSS -->
   <link rel="stylesheet" href="preview.css?v=mu54nvzk">
 
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon.png">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="考研数学">
 </head>
 <body>
 
@@ -33,6 +41,9 @@
       </nav>
     </div>
     <div class="p-header-right">
+      <button class="p-action-btn" id="btnInstallPwa" style="display:none; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 600;" title="📲 安装到手机桌面 (独立App模式)">
+        <span>📲 安装</span>
+      </button>
       <a href="classic.html" class="p-action-btn p-btn-official" title="切换回经典单流旧版">📜 经典旧版</a>
       <button class="p-action-btn" id="themeToggle" aria-label="切换暗色/亮色模式" title="切换暗色/亮色模式">
         <span id="themeIcon">☀️</span>
@@ -172,5 +183,64 @@
   <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
   <script src="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
   <script src="preview.js?v=mu54nvzk"></script>
+
+  <!-- PWA Service Worker & Install Prompt Controller -->
+  <script>
+    (function() {
+      // 1. 注册 Service Worker (相对路径 ./sw.js 自动兼容 GitHub Pages 子路径与 Localhost)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('./sw.js', { scope: './' })
+            .then(function(reg) {
+              console.log('[PWA-Math] Service Worker 注册成功，作用域:', reg.scope);
+              
+              // 自动检测新版本更新
+              reg.addEventListener('updatefound', function() {
+                var newWorker = reg.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[PWA-Math] 发现新版本题解，已为您在后台静默就绪！');
+                  }
+                });
+              });
+            })
+            .catch(function(err) {
+              console.warn('[PWA-Math] Service Worker 注册失败:', err);
+            });
+        });
+      }
+
+      // 2. 捕获浏览器安装引导事件 (beforeinstallprompt)
+      var deferredPrompt = null;
+      var installBtn = document.getElementById('btnInstallPwa');
+
+      window.addEventListener('beforeinstallprompt', function(e) {
+        // 阻止默认 mini-infobar 弹窗，由顶部按钮优雅承接
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installBtn) {
+          installBtn.style.display = 'inline-flex';
+          installBtn.addEventListener('click', function() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function(choiceResult) {
+              if (choiceResult.outcome === 'accepted') {
+                console.log('[PWA-Math] 用户已接受安装到桌面！');
+              }
+              deferredPrompt = null;
+              installBtn.style.display = 'none';
+            });
+          });
+        }
+      });
+
+      window.addEventListener('appinstalled', function() {
+        console.log('[PWA-Math] 考研数学知识库 PWA 已成功安装至系统！');
+        if (installBtn) installBtn.style.display = 'none';
+        deferredPrompt = null;
+      });
+    })();
+  </script>
 </body>
 </html>
