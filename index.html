@@ -9,7 +9,7 @@
   <!-- KaTeX CSS -->
   <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
   <!-- Modern Academic CSS -->
-  <link rel="stylesheet" href="preview.css?v=mu54nvzk">
+  <link rel="stylesheet" href="preview.css?v=mu56ekvx">
 
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.webmanifest">
@@ -182,7 +182,7 @@
   <!-- Scripts -->
   <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
   <script src="https://fastly.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script src="preview.js?v=mu54nvzk"></script>
+  <script src="preview.js?v=mu56ekvx"></script>
 
   <!-- PWA Service Worker & Install Prompt Controller -->
   <script>
@@ -214,33 +214,62 @@
       // 2. 捕获浏览器安装引导事件 (beforeinstallprompt)
       var deferredPrompt = null;
       var installBtn = document.getElementById('btnInstallPwa');
+      var mobileBanner = document.getElementById('pwaMathMobileBanner');
+      var bannerInstallBtn = document.getElementById('pwaMathBannerInstallBtn');
+      var bannerCloseBtn = document.getElementById('pwaMathBannerCloseBtn');
+
+      function triggerInstall() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('[PWA-Math] 用户已接受安装到桌面！');
+          }
+          deferredPrompt = null;
+          if (installBtn) installBtn.style.display = 'none';
+          if (mobileBanner) mobileBanner.style.display = 'none';
+        });
+      }
 
       window.addEventListener('beforeinstallprompt', function(e) {
-        // 阻止默认 mini-infobar 弹窗，由顶部按钮优雅承接
         e.preventDefault();
         deferredPrompt = e;
         if (installBtn) {
           installBtn.style.display = 'inline-flex';
-          installBtn.addEventListener('click', function() {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(function(choiceResult) {
-              if (choiceResult.outcome === 'accepted') {
-                console.log('[PWA-Math] 用户已接受安装到桌面！');
-              }
-              deferredPrompt = null;
-              installBtn.style.display = 'none';
-            });
-          });
+          installBtn.onclick = triggerInstall;
+        }
+        if (mobileBanner && !sessionStorage.getItem('pwa_math_dismissed')) {
+          mobileBanner.style.display = 'flex';
+          if (bannerInstallBtn) bannerInstallBtn.onclick = triggerInstall;
+          if (bannerCloseBtn) bannerCloseBtn.onclick = function() {
+            mobileBanner.style.display = 'none';
+            sessionStorage.setItem('pwa_math_dismissed', '1');
+          };
         }
       });
 
       window.addEventListener('appinstalled', function() {
         console.log('[PWA-Math] 考研数学知识库 PWA 已成功安装至系统！');
         if (installBtn) installBtn.style.display = 'none';
+        if (mobileBanner) mobileBanner.style.display = 'none';
         deferredPrompt = null;
       });
     })();
   </script>
+
+  <!-- PWA Mobile Install Floating Prompt -->
+  <div id="pwaMathMobileBanner" style="display:none; position:fixed; bottom:20px; left:14px; right:14px; background:linear-gradient(135deg, #1e293b, #0f172a); border:1px solid #10b981; border-radius:14px; padding:12px 16px; box-shadow:0 10px 32px rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:space-between; gap:10px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:24px;">📐</span>
+      <div>
+        <div style="font-size:13px; font-weight:700; color:#f1f5f9;">安装考研数学 SOP 知识库</div>
+        <div style="font-size:11px; color:#94a3b8;">秒速打开 · 离线随时背公式做真题</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button id="pwaMathBannerInstallBtn" style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer;">立即安装</button>
+      <button id="pwaMathBannerCloseBtn" style="background:transparent; color:#94a3b8; border:none; font-size:16px; cursor:pointer; padding:4px;">✕</button>
+    </div>
+  </div>
 </body>
 </html>

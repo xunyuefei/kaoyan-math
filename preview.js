@@ -109,6 +109,17 @@
   // ────────────────────────────────────────────
   // Switch Subject & Load Data
   // ────────────────────────────────────────────
+  window.switchSubject = switchSubject;
+  window.getCurrentSubjectId = () => currentSubjectId;
+  window.getManifest = () => manifest;
+  window.getAllProblems = () => allProblems;
+  window.rebuildSidebar = () => {
+    const currentSub = manifest && manifest.subjects.find(s => s.id === currentSubjectId);
+    if (currentSub && allProblems.length) {
+      buildSidebar(currentSub, allProblems);
+    }
+  };
+
   async function switchSubject(subjectId) {
     currentSubjectId = subjectId;
     try { localStorage.setItem('active_subject', subjectId); } catch (_) {}
@@ -1247,32 +1258,82 @@
       });
     });
 
+    // 动态更新单题 DOM 中的星标徽章与随手记笔记框（免刷新，丝滑极致）
+    function updateCardMarkInDOM(anchor) {
+      const card = document.getElementById(anchor);
+      if (card) {
+        const titleBox = card.querySelector('.p-card-title-box');
+        if (titleBox) {
+          let badgeEl = titleBox.querySelector('.p-card-marks-badge');
+          const newBadgeHtml = window.getUserMarkBadgeHtml ? window.getUserMarkBadgeHtml(anchor) : '';
+          if (newBadgeHtml) {
+            if (badgeEl) {
+              badgeEl.outerHTML = newBadgeHtml;
+            } else {
+              const titleEl = titleBox.querySelector('.p-card-title');
+              if (titleEl) titleEl.insertAdjacentHTML('afterend', newBadgeHtml);
+            }
+          } else if (badgeEl) {
+            badgeEl.remove();
+          }
+        }
+
+        let noteBox = card.querySelector('.p-card-note-box');
+        const newNoteHtml = window.getUserNoteHtml ? window.getUserNoteHtml(anchor) : '';
+        if (newNoteHtml) {
+          if (!noteBox) {
+            noteBox = document.createElement('div');
+            noteBox.className = 'p-card-note-box';
+            const stemBox = card.querySelector('.p-stem-box');
+            if (stemBox) card.insertBefore(noteBox, stemBox);
+            else card.appendChild(noteBox);
+          }
+          noteBox.innerHTML = newNoteHtml;
+        } else if (noteBox) {
+          noteBox.remove();
+        }
+      }
+
+      // 如果侧边栏当前正处于【⭐️ 标记】视图，即时无感重绘侧边栏
+      const currentDim = localStorage.getItem('sidebarDimension') || 'chapter';
+      if (currentDim === 'marks' && typeof window.rebuildSidebar === 'function') {
+        window.rebuildSidebar();
+      }
+    }
+
     document.getElementById('saveNoteBtn').addEventListener('click', () => {
       if (!currentEditingAnchor) return;
       const theme = document.getElementById('noteThemeInput').value.trim();
       const text = document.getElementById('noteTextInput').value.trim();
       
       const marks = loadMarks();
+      const targetAnchor = currentEditingAnchor;
       if (currentPriority === 0 && !theme && !text) {
-        delete marks[currentEditingAnchor];
+        delete marks[targetAnchor];
       } else {
-        marks[currentEditingAnchor] = {
+        const curSubId = window.getCurrentSubjectId ? window.getCurrentSubjectId() : 'calculus';
+        const curManifest = window.getManifest ? window.getManifest() : null;
+        const currentSubObj = curManifest && curManifest.subjects ? curManifest.subjects.find(s => s.id === curSubId) : null;
+        marks[targetAnchor] = {
           priority: currentPriority,
           theme: theme,
           text: text,
           timestamp: Date.now(),
-          num: currentEditingProb.num,
-          title: currentEditingProb.title
+          num: currentEditingProb ? currentEditingProb.num : '',
+          title: currentEditingProb ? currentEditingProb.title : '',
+          subjectId: curSubId,
+          subjectName: currentSubObj ? currentSubObj.name : ''
         };
       }
       saveMarks(marks);
       closeNoteModal();
       
-      if (typeof window.showToast === 'function') {
-        window.showToast('✅ 随手记与星标已保存');
-      }
+      // 毫秒级即时原地更新，消除卡顿与白屏重载
+      updateCardMarkInDOM(targetAnchor);
 
-      location.reload(); 
+      if (typeof window.showToast === 'function') {
+        window.showToast('✨ 随手记与星标已实时保存');
+      }
     });
   }
 
@@ -1287,8 +1348,20 @@
       if (m.priority === 0 && !m.text) return;
       const t = m.theme || '默认笔记 (未分类)';
       if (!grouped[t]) grouped[t] = [];
-      const p = allProblems.find(prob => prob.anchor === anchor);
+      
+      // 跨学科全局收录支持：如果当前学科题目列表中有则直接使用，若为其它学科则根据持久化元数据降级承接
+      let p = allProblems.find(prob => prob.anchor === anchor);
+      if (!p && m.num) {
+        p = {
+          num: m.num,
+          title: m.title || ('题目 ' + m.num),
+          anchor: anchor,
+          subjectId: m.subjectId || (anchor.includes('linalg') ? 'linalg' : 'calculus')
+        };
+      }
+      const activeSubId = window.getCurrentSubjectId ? window.getCurrentSubjectId() : 'calculus';
       if (p) {
+        if (!p.subjectId) p.subjectId = m.subjectId || activeSubId;
         grouped[t].push({ prob: p, mark: m });
       }
     });
@@ -1296,7 +1369,7 @@
     const themes = Object.keys(grouped).sort();
 
     if (themes.length === 0) {
-      nav.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">暂无星标或随手记<br/>请在卡片右上角点击【⭐️ 标记】添加</div>';
+      nav.innerHTML = '<div style="padding: 24px 16px; text-align: center; color: var(--text-muted); font-size: 13px; line-height:1.6;">⭐️ 暂无星标或随手记<br/><span style="font-size:12px; color:var(--text-secondary);">在任意题目卡片右上角点击【⭐️ 标记】即可按优先级与主题智能归并收录！</span></div>';
       return;
     }
 
@@ -1338,14 +1411,25 @@
         a.title = 'P.' + p.num + ' ' + p.title;
         
         const cleanTitle = p.title.replace(/\$[^$]+\$/g, '[公式]').replace(/<[^>]+>/g, '');
-        a.innerHTML = '<span class="p-nav-num">' + p.num + ' ' + priorityBadge + '</span><span class="p-nav-text">' + cleanTitle + '</span>';
+        const curActiveSub = window.getCurrentSubjectId ? window.getCurrentSubjectId() : 'calculus';
+        const isOtherSub = p.subjectId && p.subjectId !== curActiveSub;
+        const subBadge = isOtherSub ? ('<span style="font-size:10.5px; padding:1px 5px; border-radius:4px; margin-right:4px; background:rgba(59,130,246,0.15); color:var(--primary); font-weight:700;">' + (p.subjectId === 'linalg' ? '线代' : '高数') + '</span>') : '';
+        
+        a.innerHTML = '<span class="p-nav-num">' + p.num + ' ' + priorityBadge + '</span><span class="p-nav-text">' + subBadge + cleanTitle + '</span>';
 
-        a.addEventListener('click', (e) => {
+        a.addEventListener('click', async (e) => {
           e.preventDefault();
+          // 如果点击的题目属于另一学科，先自动无缝切换学科
+          const activeSubNow = window.getCurrentSubjectId ? window.getCurrentSubjectId() : 'calculus';
+          if (p.subjectId && p.subjectId !== activeSubNow && typeof window.switchSubject === 'function') {
+            await window.switchSubject(p.subjectId);
+          }
           const card = document.getElementById(p.anchor);
           if (card) {
             card.classList.add('sop-expanded');
-            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => {
+              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
             history.replaceState(null, '', '#' + p.anchor);
             highlightActiveNavItem(p.anchor);
           }
