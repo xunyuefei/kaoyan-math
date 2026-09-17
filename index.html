@@ -64,6 +64,7 @@
           <button class="p-dim-tab active" data-dim="chapter" title="按知识点章节分类">📚 章节</button>
           <button class="p-dim-tab" data-dim="source" title="按题集来源分类（严选题/600题/辅导讲义等）">🏷️ 题集</button>
           <button class="p-dim-tab" data-dim="date" title="按收录日期归档">📅 日期</button>
+          <button class="p-dim-tab" data-dim="marks" title="星标与随手记">⭐️ 标记</button>
         </div>
         <div class="p-view-mode-tabs" id="sidebarViewMode">
           <button class="p-mode-tab active" data-mode="list" title="列表视图">列表</button>
@@ -126,6 +127,46 @@
 
   <!-- Toast Notification -->
   <div class="p-toast" id="pToast"></div>
+
+  <!-- Note Modal Backdrop (随手记 & 星标) -->
+  <div class="p-note-modal-backdrop" id="noteModalBackdrop">
+    <div class="p-note-modal">
+      <div class="p-note-modal-header">
+        <h3 class="p-note-modal-title">⭐️ 星标与随手记</h3>
+        <button class="p-note-modal-close" id="closeNoteModalBtn" title="关闭 (ESC)">✕</button>
+      </div>
+      <div class="p-note-modal-body">
+        <div class="p-note-priority-group">
+          <label class="p-note-label">优先级 (Priority):</label>
+          <div class="p-priority-options" id="priorityOptions">
+            <button class="p-priority-btn" data-level="3" title="P3 最高优 (必须掌握)">💖 P3</button>
+            <button class="p-priority-btn" data-level="2" title="P2 中优 (易错陷阱)">🧡 P2</button>
+            <button class="p-priority-btn" data-level="1" title="P1 低优 (了解扩展)">💛 P1</button>
+            <button class="p-priority-btn" data-level="0" title="取消星标">❌ 无</button>
+          </div>
+        </div>
+        <div class="p-note-theme-group">
+          <label class="p-note-label" for="noteThemeInput">主题 (Theme) <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">(如: 易错点/秒杀/计算陷阱)</span>:</label>
+          <input type="text" class="p-note-theme-input" id="noteThemeInput" placeholder="输入或选择星标主题..." list="noteThemeList">
+          <datalist id="noteThemeList">
+            <option value="易错防线">易错防线</option>
+            <option value="秒杀技巧">秒杀技巧</option>
+            <option value="计算陷阱">计算陷阱</option>
+            <option value="经典好题">经典好题</option>
+            <option value="二刷错题">二刷错题</option>
+          </datalist>
+        </div>
+        <div class="p-note-text-group">
+          <label class="p-note-label" for="noteTextInput">随手记 (Notes):</label>
+          <textarea class="p-note-textarea" id="noteTextInput" placeholder="在这里写下你的灵感或总结..."></textarea>
+        </div>
+      </div>
+      <div class="p-note-modal-footer">
+        <button class="p-note-btn p-note-cancel-btn" id="cancelNoteBtn">取消</button>
+        <button class="p-note-btn p-note-save-btn" id="saveNoteBtn">保存</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="https://fastly.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>

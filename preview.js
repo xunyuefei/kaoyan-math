@@ -344,11 +344,13 @@
           <span class="p-source-badge">🏷️ ${p.source}</span>
           <span class="p-chapter-badge">📚 ${p.chapter}</span>
           <h3 class="p-card-title">${renderMathInline(p.title)}</h3>
+          ${(window.getUserMarkBadgeHtml && window.getUserMarkBadgeHtml(p.anchor)) || ''}
           <div class="p-card-tags">
             ${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}
           </div>
         </div>
         <div class="p-card-actions">
+          <button class="p-mark-btn" type="button" title="随手记与星标">⭐️ 标记</button>
           <button class="p-copy-btn" type="button" title="一键复制本题与公式">📋 复制</button>
           <button class="p-unmask-btn" type="button" title="揭晓本题手眼法与答案">👁️ 揭晓</button>
           <button class="p-toggle-sop-btn" type="button" aria-label="展开推导">
@@ -359,6 +361,15 @@
       `;
 
       card.appendChild(header);
+
+      // Inject existing note
+      const existingNote = window.getUserNoteHtml && window.getUserNoteHtml(p.anchor);
+      if (existingNote) {
+        const noteBox = document.createElement('div');
+        noteBox.className = 'p-card-note-box';
+        noteBox.innerHTML = existingNote;
+        card.appendChild(noteBox);
+      }
 
       // Stem Box (原题呈现)
       const stemBox = document.createElement('div');
@@ -415,6 +426,17 @@
         if (card) {
           card.classList.toggle('sop-expanded');
           restoreAllMath(card);
+        }
+        return;
+      }
+
+      // 1.5. Mark Button
+      const markBtn = e.target.closest('.p-mark-btn');
+      if (markBtn) {
+        const card = markBtn.closest('.p-card');
+        if (card && window.openNoteModal) {
+          const prob = allProblems.find(p => String(p.num) === String(card.dataset.num));
+          if (prob) window.openNoteModal(prob);
         }
         return;
       }
@@ -667,7 +689,9 @@
         group.appendChild(problemList);
         nav.appendChild(group);
       });
-    } else {
+    } else if (dim === 'marks') {
+      window.buildMarksSidebar && window.buildMarksSidebar(nav, problems, isGrid, highlightActiveNavItem, closeMobileMenu, updateToggleAllBtnState);
+    } else { 
       // 📅 按收录日期归档
       const batches = (subject.batches && subject.batches.length)
         ? subject.batches
@@ -1130,5 +1154,210 @@
       toast.classList.remove('show');
     }, 2400);
   }
+
+})();
+
+
+
+
+
+/* =========================================================================
+   NOTE MODAL & MARKS LOGIC (随手记 & 星标)
+   ========================================================================= */
+
+(function() {
+  const STORAGE_KEY = 'kaoyan_math_user_marks';
+  
+  function loadMarks() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveMarks(marks) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(marks));
+  }
+
+  window.getUserMarkBadgeHtml = function(anchor) {
+    const marks = loadMarks();
+    const m = marks[anchor];
+    if (!m || !m.priority) return '';
+    let icon = '', label = '';
+    if (m.priority === 3) { icon = '💖'; label = 'P3'; }
+    if (m.priority === 2) { icon = '🧡'; label = 'P2'; }
+    if (m.priority === 1) { icon = '💛'; label = 'P1'; }
+    return '<span class="p-card-marks-badge" data-level="' + m.priority + '">' + icon + ' ' + label + (m.theme ? ' · ' + m.theme : '') + '</span>';
+  };
+
+  window.getUserNoteHtml = function(anchor) {
+    const marks = loadMarks();
+    const m = marks[anchor];
+    if (!m || !m.text) return '';
+    const safeText = m.text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return '<strong>📝 随手记：</strong><br/>' + safeText;
+  };
+
+  let currentEditingAnchor = null;
+  let currentEditingProb = null;
+  let currentPriority = 0;
+
+  window.openNoteModal = function(prob) {
+    currentEditingProb = prob;
+    currentEditingAnchor = prob.anchor;
+    const marks = loadMarks();
+    const m = marks[currentEditingAnchor] || { priority: 0, theme: '', text: '' };
+    
+    currentPriority = m.priority || 0;
+    document.querySelectorAll('.p-priority-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.level) === currentPriority);
+    });
+    
+    document.getElementById('noteThemeInput').value = m.theme || '';
+    document.getElementById('noteTextInput').value = m.text || '';
+    
+    const backdrop = document.getElementById('noteModalBackdrop');
+    if (backdrop) backdrop.classList.add('active');
+  };
+
+  function closeNoteModal() {
+    const backdrop = document.getElementById('noteModalBackdrop');
+    if (backdrop) backdrop.classList.remove('active');
+    currentEditingAnchor = null;
+    currentEditingProb = null;
+  }
+
+  function setupNoteModalUI() {
+    const backdrop = document.getElementById('noteModalBackdrop');
+    if (!backdrop) return;
+    
+    document.getElementById('closeNoteModalBtn').addEventListener('click', closeNoteModal);
+    document.getElementById('cancelNoteBtn').addEventListener('click', closeNoteModal);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeNoteModal();
+    });
+
+    document.querySelectorAll('.p-priority-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        currentPriority = parseInt(btn.dataset.level);
+        document.querySelectorAll('.p-priority-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    document.getElementById('saveNoteBtn').addEventListener('click', () => {
+      if (!currentEditingAnchor) return;
+      const theme = document.getElementById('noteThemeInput').value.trim();
+      const text = document.getElementById('noteTextInput').value.trim();
+      
+      const marks = loadMarks();
+      if (currentPriority === 0 && !theme && !text) {
+        delete marks[currentEditingAnchor];
+      } else {
+        marks[currentEditingAnchor] = {
+          priority: currentPriority,
+          theme: theme,
+          text: text,
+          timestamp: Date.now(),
+          num: currentEditingProb.num,
+          title: currentEditingProb.title
+        };
+      }
+      saveMarks(marks);
+      closeNoteModal();
+      
+      if (typeof window.showToast === 'function') {
+        window.showToast('✅ 随手记与星标已保存');
+      }
+
+      location.reload(); 
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', setupNoteModalUI);
+
+  window.buildMarksSidebar = function(nav, allProblems, isGrid, highlightActiveNavItem, closeMobileMenu, updateToggleAllBtnState) {
+    const marks = loadMarks();
+    
+    const grouped = {};
+    Object.keys(marks).forEach(anchor => {
+      const m = marks[anchor];
+      if (m.priority === 0 && !m.text) return;
+      const t = m.theme || '默认笔记 (未分类)';
+      if (!grouped[t]) grouped[t] = [];
+      const p = allProblems.find(prob => prob.anchor === anchor);
+      if (p) {
+        grouped[t].push({ prob: p, mark: m });
+      }
+    });
+
+    const themes = Object.keys(grouped).sort();
+
+    if (themes.length === 0) {
+      nav.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">暂无星标或随手记<br/>请在卡片右上角点击【⭐️ 标记】添加</div>';
+      return;
+    }
+
+    themes.forEach(theme => {
+      const items = grouped[theme];
+      items.sort((a, b) => {
+        if (b.mark.priority !== a.mark.priority) return b.mark.priority - a.mark.priority;
+        return a.prob.num - b.prob.num;
+      });
+
+      const group = document.createElement('div');
+      group.className = 'p-nav-date-group';
+
+      const header = document.createElement('div');
+      header.className = 'p-nav-date-header';
+      header.innerHTML = '<div class="p-date-title-box"><span>⭐️ ' + theme + '</span><span class="p-date-badge">' + items.length + ' 题</span></div><span class="p-date-arrow">▼</span>';
+      
+      header.addEventListener('click', () => {
+        group.classList.toggle('collapsed');
+        updateToggleAllBtnState();
+      });
+      group.appendChild(header);
+
+      const problemList = document.createElement('div');
+      problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+      items.forEach((item) => {
+        const p = item.prob;
+        const a = document.createElement('a');
+        a.className = 'p-nav-item';
+        a.href = '#' + p.anchor;
+        a.dataset.anchor = p.anchor;
+        
+        let priorityBadge = '';
+        if (item.mark.priority === 3) priorityBadge = '💖';
+        if (item.mark.priority === 2) priorityBadge = '🧡';
+        if (item.mark.priority === 1) priorityBadge = '💛';
+
+        a.title = 'P.' + p.num + ' ' + p.title;
+        
+        const cleanTitle = p.title.replace(/\$[^$]+\$/g, '[公式]').replace(/<[^>]+>/g, '');
+        a.innerHTML = '<span class="p-nav-num">' + p.num + ' ' + priorityBadge + '</span><span class="p-nav-text">' + cleanTitle + '</span>';
+
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const card = document.getElementById(p.anchor);
+          if (card) {
+            card.classList.add('sop-expanded');
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.replaceState(null, '', '#' + p.anchor);
+            highlightActiveNavItem(p.anchor);
+          }
+          closeMobileMenu();
+        });
+        problemList.appendChild(a);
+      });
+
+      group.appendChild(problemList);
+      nav.appendChild(group);
+    });
+    updateToggleAllBtnState();
+  };
 
 })();
