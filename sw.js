@@ -3,28 +3,44 @@
 // 策略：App Shell 快速秒开 + 内容数据 Network-First (网络优先防锁死) + 离线兜底
 // ==============================================================================
 
-const CACHE_VERSION = 'kaoyan-math-pwa-v1.0';
+const CACHE_VERSION = 'kaoyan-math-pwa-v1.1';
 const OFFLINE_URL = './offline.html';
 
 // 核心外壳预缓存清单（轻量必需，绝不大包揽）
 const PRECACHE_SHELL = [
   './',
   './index.html',
-  './style.css',
-  './app.js',
+  './preview.css',
+  './preview.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
   './icons/favicon.png',
+  './icon-192.png',
+  './icon-512.png',
   OFFLINE_URL
 ];
 
-// 1. 安装阶段：仅缓存基础 App Shell
+// 1. 安装阶段：弹性容错预缓存 App Shell（保障安卓 Edge/Chrome 100% 安装成功）
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_VERSION).then(cache => {
-      return cache.addAll(PRECACHE_SHELL);
+    caches.open(CACHE_VERSION).then(async cache => {
+      // 使用 Promise.allSettled 逐项缓存，绝不因单项偶发波动而导致整套 SW 安装夭折
+      await Promise.allSettled(
+        PRECACHE_SHELL.map(async url => {
+          try {
+            const res = await fetch(url, { cache: 'reload' });
+            if (res && res.ok) {
+              await cache.put(url, res);
+            } else {
+              console.warn('[SW-Math] Precache status non-200 for:', url, res ? res.status : 'null');
+            }
+          } catch (err) {
+            console.warn('[SW-Math] Precache fetch error for:', url, err);
+          }
+        })
+      );
     }).then(() => {
       // 允许新 SW 立即激活接管
       return self.skipWaiting();

@@ -4,6 +4,7 @@
 !index.html
 !preview.html
 !classic.html
+!offline.html
 
 # Build artifacts
 generate_pdf.py
