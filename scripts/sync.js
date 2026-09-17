@@ -199,8 +199,25 @@ manifest.subjects.forEach(subject => {
 
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 
+// 自动更新 index.html 与 preview.html 的资源时间戳，彻底防止浏览器与 GitHub CDN 强缓存
+try {
+  const ver = Date.now().toString(36);
+  const root = path.join(__dirname, '..');
+  ['index.html', 'preview.html'].forEach(f => {
+    const fp = path.join(root, f);
+    if (fs.existsSync(fp)) {
+      let content = fs.readFileSync(fp, 'utf8');
+      content = content.replace(/preview\.css\?v=[^"']+/g, `preview.css?v=${ver}`);
+      content = content.replace(/preview\.js\?v=[^"']+/g, `preview.js?v=${ver}`);
+      fs.writeFileSync(fp, content, 'utf8');
+    }
+  });
+  console.log(`\x1b[32m[CacheBuster]\x1b[0m 已自动更新前端资源时间戳: v=${ver}`);
+} catch (_) {}
+
 if (hasErrors) {
   console.log(`\n\x1b[33m[Done]\x1b[0m 同步完成！已更新 manifest.json。但请检查上方列出的 \x1b[33m[Warning]\x1b[0m 格式问题。`);
 } else {
   console.log(`\n\x1b[32m[Success]\x1b[0m 同步完成！所有题目已严格遵循用户标准大纲（章节 & 题集）规制，manifest.json 已更新。`);
 }
+
