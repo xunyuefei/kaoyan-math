@@ -232,6 +232,76 @@
               "anchor": "problem-41"
             }
           ]
+        },
+        {
+          "date": "2026-09-18",
+          "problems": [
+            {
+              "num": 42,
+              "title": "摆线围成区域上的二重积分 $\\iint_{D} y^{2} \\, \\mathrm{d}\\sigma$",
+              "chapter": "6. 二重积分",
+              "source": "辅导讲义",
+              "tags": [
+                "参数方程",
+                "切片降维",
+                "换元法",
+                "Wallis 公式"
+              ],
+              "anchor": "problem-42"
+            },
+            {
+              "num": 43,
+              "title": "分段复合函数 $f(x)f(x^{2}-y)$ 在全平面上的二重积分",
+              "chapter": "6. 二重积分",
+              "source": "辅导讲义",
+              "tags": [
+                "分段函数",
+                "示性区域",
+                "平移换元",
+                "算子解耦"
+              ],
+              "anchor": "problem-43"
+            },
+            {
+              "num": 44,
+              "title": "圆域 $x^{2}+y^{2}\\leqslant 4$ 上的绝对值二重积分",
+              "chapter": "6. 二重积分",
+              "source": "辅导讲义",
+              "tags": [
+                "绝对值积分",
+                "子区域包含拆分",
+                "坐标平移",
+                "极坐标"
+              ],
+              "anchor": "problem-44"
+            },
+            {
+              "num": 47,
+              "title": "全平面上的二重积分 $\\iint \\min\\{x, y\\} \\mathrm{e}^{-(x^{2}+y^{2})} \\, \\mathrm{d}\\sigma$",
+              "chapter": "6. 二重积分",
+              "source": "辅导讲义",
+              "tags": [
+                "min 型分域",
+                "轮换对称",
+                "极坐标",
+                "广义积分"
+              ],
+              "anchor": "problem-47"
+            },
+            {
+              "num": 48,
+              "title": "抽象函数在对称三角形区域上的二重积分",
+              "chapter": "6. 二重积分",
+              "source": "辅导讲义",
+              "tags": [
+                "抽象函数",
+                "正方形二等分",
+                "变限积分",
+                "凑微分"
+              ],
+              "anchor": "problem-48"
+            }
+          ]
         }
       ]
     },
