@@ -209,7 +209,7 @@
         '5. 多元函数微分',
         '6. 二重积分'
       ],
-      sources: ['辅导讲义', '600题', '精选题', '严选题']
+      sources: ['辅导讲义', '660题', '严选题', '精选题']
     },
     linalg: {
       chapters: [
@@ -247,13 +247,12 @@
 
   function normalizeSource(rawText, num, subjectId) {
     const text = (rawText || '').trim();
-    if (/600/i.test(text)) return '600题';
-    if (/660/i.test(text)) return '660题';
+    if (/660|600/i.test(text)) return '660题';
     if (/精选/i.test(text)) return '精选题';
     if (/严选/i.test(text)) return '严选题';
     if (/讲义|辅导/i.test(text)) return '辅导讲义';
     if (subjectId === 'calculus') {
-      return num < 100 ? '严选题' : '600题';
+      return num < 100 ? '严选题' : '660题';
     } else {
       return '严选题';
     }
@@ -670,34 +669,68 @@
         });
         group.appendChild(header);
 
-        const problemList = document.createElement('div');
-        problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
-
+        // 核心优化：在各题集内按考研 6 大标准章节细分子组，解决纯序号无序混杂问题
+        const canonicalChapters = TAXONOMY[subject.id] ? TAXONOMY[subject.id].chapters : [];
+        const chMap = {};
         srcProblems.forEach((p) => {
-          const a = document.createElement('a');
-          a.className = 'p-nav-item';
-          a.href = '#' + p.anchor;
-          a.dataset.anchor = p.anchor;
-          a.title = p.num + '. [' + p.chapter + '] ' + stripMath(p.title);
-          a.innerHTML = `
-            <span class="p-nav-num">${p.num}</span>
-            <span class="p-nav-text">${stripMath(p.title)}</span>
-          `;
-          a.addEventListener('click', (e) => {
-            e.preventDefault();
-            const card = document.getElementById(p.anchor);
-            if (card) {
-              card.classList.add('sop-expanded');
-              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              history.replaceState(null, '', '#' + p.anchor);
-              highlightActiveNavItem(p.anchor);
-            }
-            closeMobileMenu();
-          });
-          problemList.appendChild(a);
+          const ch = p.chapter || '考点专题';
+          if (!chMap[ch]) chMap[ch] = [];
+          chMap[ch].push(p);
         });
 
-        group.appendChild(problemList);
+        const orderedChapters = canonicalChapters.filter(ch => chMap[ch] && chMap[ch].length > 0);
+        Object.keys(chMap).forEach(ch => {
+          if (!orderedChapters.includes(ch)) orderedChapters.push(ch);
+        });
+
+        const groupBody = document.createElement('div');
+        groupBody.className = 'p-nav-group-body';
+
+        orderedChapters.forEach((ch) => {
+          const chProblems = chMap[ch];
+          const subGroup = document.createElement('div');
+          subGroup.className = 'p-nav-subgroup';
+
+          const subHeader = document.createElement('div');
+          subHeader.className = 'p-nav-sub-header';
+          subHeader.innerHTML = `
+            <span class="p-sub-title">📚 ${ch}</span>
+            <span class="p-sub-badge">${chProblems.length} 题</span>
+          `;
+          subGroup.appendChild(subHeader);
+
+          const problemList = document.createElement('div');
+          problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+          chProblems.forEach((p) => {
+            const a = document.createElement('a');
+            a.className = 'p-nav-item';
+            a.href = '#' + p.anchor;
+            a.dataset.anchor = p.anchor;
+            a.title = p.num + '. [' + p.chapter + '] ' + stripMath(p.title);
+            a.innerHTML = `
+              <span class="p-nav-num">${p.num}</span>
+              <span class="p-nav-text">${stripMath(p.title)}</span>
+            `;
+            a.addEventListener('click', (e) => {
+              e.preventDefault();
+              const card = document.getElementById(p.anchor);
+              if (card) {
+                card.classList.add('sop-expanded');
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                history.replaceState(null, '', '#' + p.anchor);
+                highlightActiveNavItem(p.anchor);
+              }
+              closeMobileMenu();
+            });
+            problemList.appendChild(a);
+          });
+
+          subGroup.appendChild(problemList);
+          groupBody.appendChild(subGroup);
+        });
+
+        group.appendChild(groupBody);
         nav.appendChild(group);
       });
     } else if (dim === 'marks') {

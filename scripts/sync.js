@@ -19,7 +19,7 @@ const TAXONOMY = {
       '5. 多元函数微分',
       '6. 二重积分'
     ],
-    sources: ['辅导讲义', '600题', '精选题', '严选题']
+    sources: ['辅导讲义', '660题', '严选题', '精选题']
   },
   linalg: {
     chapters: [
@@ -61,15 +61,14 @@ function normalizeChapter(rawText, subjectId) {
 // 标准化来源题集映射
 function normalizeSource(rawText, num, subjectId) {
   const text = (rawText || '').trim();
-  if (/600/i.test(text)) return '600题';
-  if (/660/i.test(text)) return '660题';
+  if (/660|600/i.test(text)) return '660题';
   if (/精选/i.test(text)) return '精选题';
   if (/严选/i.test(text)) return '严选题';
   if (/讲义|辅导/i.test(text)) return '辅导讲义';
 
-  // 兜底规则（依用户约定：高数小于100为严选题，大于100为600题；线代为严选题）
+  // 兜底规则（依用户约定：高数小于100为严选题，大于100为660题；线代为严选题）
   if (subjectId === 'calculus') {
-    return num < 100 ? '严选题' : '600题';
+    return num < 100 ? '严选题' : '660题';
   } else {
     return '严选题';
   }

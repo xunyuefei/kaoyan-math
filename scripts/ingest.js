@@ -46,8 +46,7 @@ function parseHeaderLine(line) {
   }
 
   // 2. 识别来源题集
-  if (/600/i.test(t)) source = '600题';
-  else if (/660/i.test(t)) source = '660题';
+  if (/660|600/i.test(t)) source = '660题';
   else if (/精选/i.test(t)) source = '精选题';
   else if (/严选/i.test(t)) source = '严选题';
   else if (/讲义|辅导/i.test(t)) source = '辅导讲义';
@@ -106,7 +105,7 @@ function parseHeaderLine(line) {
 
   // 兜底来源
   if (!source) {
-    source = (subjectKey === 'calculus') ? '600题' : '严选题';
+    source = (subjectKey === 'calculus') ? '660题' : '严选题';
   }
 
   return { source, chapter, subjectKey };
@@ -209,7 +208,7 @@ function processInbox() {
 
       // 补充或更新 metadata
       const finalChapter = chapter || (subjectKey === 'calculus' ? '6. 二重积分' : '5. 特征值与特征向量');
-      const finalSource = source || (subjectKey === 'calculus' ? (problemNum < 100 ? '严选题' : '600题') : '严选题');
+      const finalSource = source || (subjectKey === 'calculus' ? (problemNum < 100 ? '严选题' : '660题') : '严选题');
 
       if (!problemContent.includes('所属章节：')) {
         problemContent = problemContent.replace(/(^[#\s]*📌\s*题目\s*\d+[^\r\n]*)/m, `$1\n所属章节：\`${finalChapter}\` · 来源题集：\`${finalSource}\``);

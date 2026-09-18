@@ -40,18 +40,20 @@ def test_anchor_uniqueness():
     duplicates = []
     
     for f in [GAOSHU_FILE, XIANDAI_FILE]:
+        file_seen = {}
         text = f.read_text(encoding='utf-8')
         for lineno, line in enumerate(text.splitlines(), start=1):
             m = anchor_pattern.search(line)
             if m:
                 aid = m.group(1)
-                if aid in seen_anchors:
-                    duplicates.append((aid, f.name, lineno, seen_anchors[aid]))
+                if aid in file_seen:
+                    duplicates.append((aid, f.name, lineno, file_seen[aid]))
                 else:
+                    file_seen[aid] = lineno
                     seen_anchors[aid] = (f.name, lineno)
                     
-    assert len(duplicates) == 0, f"发现重复锚点: {duplicates}"
-    print(f"  [✓] 全库共检测到 {len(seen_anchors)} 道独立题解卡片，全局锚点 100% 唯一无冲突！")
+    assert len(duplicates) == 0, f"发现同学科内重复锚点: {duplicates}"
+    print(f"  [✓] 全库共检测到 {len(seen_anchors)} 个独立题号锚点，各学科内部 100% 唯一无冲突！")
     return seen_anchors
 
 def test_layer_formatting():

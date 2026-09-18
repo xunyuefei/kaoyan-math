@@ -165,7 +165,7 @@
               "num": 191,
               "title": "计算 $\\int_0^1\\mathrm{d}x\\int_{1 - x}^{\\sqrt{1 - x^2}}\\frac{x + y}{x^2 + y^2}\\mathrm{d}y$",
               "chapter": "6. 二重积分",
-              "source": "600题",
+              "source": "660题",
               "tags": [
                 "二重积分",
                 "极坐标变换",
@@ -178,7 +178,7 @@
               "num": 193,
               "title": "计算 $\\iint_{x^2 + y^2 \\leqslant 1} (x^2 + 2y) \\, \\mathrm{d}\\sigma$",
               "chapter": "6. 二重积分",
-              "source": "600题",
+              "source": "660题",
               "tags": [
                 "二重积分",
                 "奇偶对称性",

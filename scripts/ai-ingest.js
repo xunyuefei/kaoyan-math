@@ -39,7 +39,7 @@ const TAXONOMY = {
     name: '高等数学',
     file: '高等数学_题解集.md',
     chapters: ['函数与极限', '一元函数微分', '一元函数积分', '常微分方程', '多元函数微分', '二重积分'],
-    sources: ['辅导讲义', '600题', '精选题', '严选题']
+    sources: ['辅导讲义', '660题', '精选题', '严选题']
   },
   linalg: {
     name: '线性代数',
@@ -55,16 +55,15 @@ function parseFirstLine(line) {
   let source = '', chapter = '', subjectKey = '';
 
   // 识别来源题集
-  if (/600/.test(t)) source = '600题';
-  else if (/660/.test(t)) source = '660题';
+  if (/660|600/.test(t)) source = '660题';
   else if (/精选/.test(t)) source = '精选题';
   else if (/严选/.test(t)) source = '严选题';
   else if (/讲义|辅导/.test(t)) source = '辅导讲义';
 
   // 预判学科
-  if (/线代|线性代数|660/.test(t)) {
+  if (/线代|线性代数/.test(t)) {
     subjectKey = 'linalg';
-  } else if (/高数|高等数学|600/.test(t)) {
+  } else if (/高数|高等数学/.test(t)) {
     subjectKey = 'calculus';
   }
 
