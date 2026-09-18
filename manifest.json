@@ -423,6 +423,68 @@
                 "切比雪夫同构"
               ],
               "anchor": "problem-58"
+            },
+            {
+              "num": 59,
+              "title": "取整函数极限 $\\lim\\limits_{x\\to 0} x\\left[\\frac{2}{x}\\right]$",
+              "chapter": "1. 函数与极限",
+              "source": "660题",
+              "tags": [
+                "取整函数",
+                "夹逼准则",
+                "无穷小乘有界量"
+              ],
+              "anchor": "problem-59"
+            },
+            {
+              "num": 60,
+              "title": "幂指函数差值极限 $\\lim\\limits_{x\\to 0^{+}}\\frac{x^{x}-(\\sin x)^{x}}{x^{2}\\arctan x}$",
+              "chapter": "1. 函数与极限",
+              "source": "660题",
+              "tags": [
+                "幂指函数",
+                "指数恒等式",
+                "泰勒展开",
+                "等价无穷小"
+              ],
+              "anchor": "problem-60"
+            },
+            {
+              "num": 61,
+              "title": "含 $f''(a)$ 的通分式极限",
+              "chapter": "1. 函数与极限",
+              "source": "660题",
+              "tags": [
+                "通分化归",
+                "导数定义",
+                "洛必达法则",
+                "泰勒展开"
+              ],
+              "anchor": "problem-61"
+            },
+            {
+              "num": 62,
+              "title": "泰勒余项中中间值 $\\theta$ 的极限",
+              "chapter": "1. 函数与极限",
+              "source": "660题",
+              "tags": [
+                "麦克劳林展开",
+                "拉格朗日余项",
+                "高阶比对"
+              ],
+              "anchor": "problem-62"
+            },
+            {
+              "num": 63,
+              "title": "裂项相消求数列极限",
+              "chapter": "1. 函数与极限",
+              "source": "660题",
+              "tags": [
+                "数列极限",
+                "等差求和",
+                "裂项相消"
+              ],
+              "anchor": "problem-63"
             }
           ]
         }
