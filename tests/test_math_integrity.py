@@ -68,7 +68,7 @@ def test_layer_formatting():
         text = f.read_text(encoding='utf-8')
         lines = text.splitlines()
         for i, line in enumerate(lines):
-            if re.match(r'^####\s+第\d+步：Layer\s+\d+', line):
+            if re.match(r'^####\s+第(?:[一二三四五六]|\d+)步：Layer\s+\d+', line):
                 # 检查标题行是否附带了正文内容（如包含冒号或句号紧跟大段文字）
                 # 合法格式为类似 "#### 第一步：Layer 1 代数表征（识别考卷符号）" 之后即为换行
                 clean_title = line.strip()

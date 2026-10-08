@@ -112,11 +112,16 @@ function normalizeSource(rawText, num, subjectId) {
 
 // 提取痛点归因
 function extractPainPoint(raw, tags) {
-  const allText = (tags.join(' ') + ' ' + raw);
-  if (/无思路/.test(allText)) return '无思路';
-  if (/计算失误/.test(allText)) return '计算失误';
-  if (/产生疑问|疑问/.test(allText)) return '产生疑问';
-  if (/审题陷阱|陷阱|题意陷阱/.test(allText)) return '审题陷阱';
+  const tagText = tags.join(' ');
+  if (/无思路/.test(tagText)) return '无思路';
+  if (/计算失误/.test(tagText)) return '计算失误';
+  if (/产生疑问|产生疑惑|疑问/.test(tagText)) return '产生疑问';
+  if (/审题陷阱|陷阱|题意陷阱/.test(tagText)) return '审题陷阱';
+  
+  if (/无思路/.test(raw)) return '无思路';
+  if (/计算失误/.test(raw)) return '计算失误';
+  if (/产生疑问|产生疑惑|疑问/.test(raw)) return '产生疑问';
+  if (/审题陷阱|陷阱|题意陷阱/.test(raw)) return '审题陷阱';
   return '';
 }
 
