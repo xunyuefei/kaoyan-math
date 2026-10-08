@@ -1457,6 +1457,13 @@
           ]
         }
       ]
+    },
+    {
+      "id": "past_exams",
+      "name": "历年真题",
+      "icon": "🏆",
+      "file": "content/历年真题_数二.md",
+      "batches": []
     }
   ]
 }

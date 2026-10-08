@@ -16,6 +16,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 CONTENT_DIR = ROOT_DIR / "content"
 GAOSHU_FILE = CONTENT_DIR / "高等数学_题解集.md"
 XIANDAI_FILE = CONTENT_DIR / "线性代数_题解集.md"
+ZHENTI_FILE = CONTENT_DIR / "历年真题_数二.md"
 MANIFEST_FILE = ROOT_DIR / "manifest.json"
 
 ALLOWED_GAOSHU_CHAPTERS = {
@@ -26,11 +27,14 @@ ALLOWED_XIANDAI_CHAPTERS = {
     "行列式", "矩阵", "n维向量", "线性方程组", "特征值与特征向量", "二次型"
 }
 
+ALLOWED_ZHENTI_CHAPTERS = ALLOWED_GAOSHU_CHAPTERS | ALLOWED_XIANDAI_CHAPTERS
+
 def test_files_exist():
     print("[1/5] 正在检验核心真题数据源文件存在性...")
     assert GAOSHU_FILE.exists(), f"找不到高数数据源: {GAOSHU_FILE}"
     assert XIANDAI_FILE.exists(), f"找不到线代数据源: {XIANDAI_FILE}"
-    print(f"  [✓] 发现数据源: {GAOSHU_FILE.name}, {XIANDAI_FILE.name}")
+    assert ZHENTI_FILE.exists(), f"找不到历年真题数据源: {ZHENTI_FILE}"
+    print(f"  [✓] 发现数据源: {GAOSHU_FILE.name}, {XIANDAI_FILE.name}, {ZHENTI_FILE.name}")
 
 def test_anchor_uniqueness():
     print("\n[2/5] 正在检验全局锚点唯一性与题号递增...")
@@ -39,7 +43,7 @@ def test_anchor_uniqueness():
     seen_anchors = {}
     duplicates = []
     
-    for f in [GAOSHU_FILE, XIANDAI_FILE]:
+    for f in [GAOSHU_FILE, XIANDAI_FILE, ZHENTI_FILE]:
         file_seen = {}
         text = f.read_text(encoding='utf-8')
         for lineno, line in enumerate(text.splitlines(), start=1):
@@ -60,7 +64,7 @@ def test_layer_formatting():
     print("\n[3/5] 正在检验 SOP 6 层标题独占换行防线...")
     layer_errors = []
     
-    for f in [GAOSHU_FILE, XIANDAI_FILE]:
+    for f in [GAOSHU_FILE, XIANDAI_FILE, ZHENTI_FILE]:
         text = f.read_text(encoding='utf-8')
         lines = text.splitlines()
         for i, line in enumerate(lines):
@@ -68,7 +72,7 @@ def test_layer_formatting():
                 # 检查标题行是否附带了正文内容（如包含冒号或句号紧跟大段文字）
                 # 合法格式为类似 "#### 第一步：Layer 1 代数表征（识别考卷符号）" 之后即为换行
                 clean_title = line.strip()
-                # 若包含换行符或长度异乎寻常（> 60 字符），可能混入了正文
+                # 若包含换行符或长度异乎寻常（> 80 字符），可能混入了正文
                 if len(clean_title) > 80:
                     layer_errors.append((f.name, i + 1, clean_title[:40]))
                     
@@ -95,6 +99,13 @@ def test_chapter_taxonomy():
         clean_cname = re.sub(r'^\d+[\.、\s]*', '', cname)
         if clean_cname not in ALLOWED_XIANDAI_CHAPTERS:
             anomalies.append(("线性代数", cname))
+
+    zhenti_text = ZHENTI_FILE.read_text(encoding='utf-8')
+    for m in chap_pattern.finditer(zhenti_text):
+        cname = m.group(1).strip()
+        clean_cname = re.sub(r'^\d+[\.、\s]*', '', cname)
+        if clean_cname not in ALLOWED_ZHENTI_CHAPTERS:
+            anomalies.append(("历年真题", cname))
             
     assert len(anomalies) == 0, f"发现非法章节分类: {anomalies}"
     print("  [✓] 章节分类全部精准落入用户 12 大官方标准章节白名单！")

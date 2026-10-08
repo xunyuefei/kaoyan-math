@@ -46,40 +46,67 @@ const TAXONOMY = {
     file: '线性代数_题解集.md',
     chapters: ['行列式', '矩阵', 'n维向量', '线性方程组', '特征值与特征向量', '二次型'],
     sources: ['辅导讲义', '660题', '严选题']
+  },
+  past_exams: {
+    name: '历年真题',
+    file: '历年真题_数二.md',
+    chapters: [
+      '函数与极限', '一元函数微分', '一元函数积分', '常微分方程', '多元函数微分', '二重积分',
+      '行列式', '矩阵', 'n维向量', '线性方程组', '特征值与特征向量', '二次型'
+    ],
+    sources: Array.from({ length: 22 }, (_, i) => `${2005 + i}年数二`)
   }
 };
 
 // ─── 从首行提取来源与章节 ───
 function parseFirstLine(line) {
   const t = line.trim();
-  let source = '', chapter = '', subjectKey = '';
+  let source = '', chapter = '', subjectKey = '', painPoint = '';
 
-  // 识别来源题集
-  if (/660|600/.test(t)) source = '660题';
-  else if (/精选/.test(t)) source = '精选题';
-  else if (/严选/.test(t)) source = '严选题';
-  else if (/讲义|辅导/.test(t)) source = '辅导讲义';
+  // 识别真题年份与痛点
+  const yearMatch = t.match(/(\d{4})/);
+  if (/真题|数二/.test(t) || yearMatch) {
+    subjectKey = 'past_exams';
+    if (yearMatch) source = `${yearMatch[1]}年数二`;
+    else source = '历年真题';
+  }
+
+  // 识别痛点归因
+  if (/无思路/.test(t)) painPoint = '🔴 无思路';
+  else if (/计算失误/.test(t)) painPoint = '🟠 计算失误';
+  else if (/产生疑问|疑问/.test(t)) painPoint = '🔵 产生疑问';
+  else if (/审题陷阱|陷阱/.test(t)) painPoint = '🟡 审题陷阱';
+
+  // 识别来源题集（若非真题）
+  if (!subjectKey) {
+    if (/660|600/.test(t)) source = '660题';
+    else if (/精选/.test(t)) source = '精选题';
+    else if (/严选/.test(t)) source = '严选题';
+    else if (/讲义|辅导/.test(t)) source = '辅导讲义';
+  }
 
   // 预判学科
-  if (/线代|线性代数/.test(t)) {
-    subjectKey = 'linalg';
-  } else if (/高数|高等数学/.test(t)) {
-    subjectKey = 'calculus';
+  if (!subjectKey) {
+    if (/线代|线性代数/.test(t)) {
+      subjectKey = 'linalg';
+    } else if (/高数|高等数学/.test(t)) {
+      subjectKey = 'calculus';
+    }
   }
 
   // 识别章节（按关键字）
-  if (/二重积分/.test(t)) { chapter = '二重积分'; subjectKey = 'calculus'; }
-  else if (/多元函数微分|多元微分/.test(t)) { chapter = '多元函数微分'; subjectKey = 'calculus'; }
-  else if (/常微分方程|微分方程/.test(t)) { chapter = '常微分方程'; subjectKey = 'calculus'; }
-  else if (/一元函数积分|一元积分/.test(t)) { chapter = '一元函数积分'; subjectKey = 'calculus'; }
-  else if (/一元函数微分|一元微分/.test(t)) { chapter = '一元函数微分'; subjectKey = 'calculus'; }
-  else if (/函数与极限|极限/.test(t)) { chapter = '函数与极限'; subjectKey = 'calculus'; }
-  else if (/二次型/.test(t)) { chapter = '二次型'; subjectKey = 'linalg'; }
-  else if (/特征值|特征向量/.test(t)) { chapter = '特征值与特征向量'; subjectKey = 'linalg'; }
-  else if (/线性方程组|方程组/.test(t)) { chapter = '线性方程组'; subjectKey = 'linalg'; }
-  else if (/n维向量|向量组|向量/.test(t)) { chapter = 'n维向量'; subjectKey = 'linalg'; }
-  else if (/矩阵/.test(t)) { chapter = '矩阵'; subjectKey = 'linalg'; }
-  else if (/行列式/.test(t)) { chapter = '行列式'; subjectKey = 'linalg'; }
+  if (/二重积分/.test(t)) { chapter = '二重积分'; if (!subjectKey) subjectKey = 'calculus'; }
+  else if (/多元函数微分|多元微分/.test(t)) { chapter = '多元函数微分'; if (!subjectKey) subjectKey = 'calculus'; }
+  else if (/常微分方程|微分方程/.test(t)) { chapter = '常微分方程'; if (!subjectKey) subjectKey = 'calculus'; }
+  else if (/一元函数积分|一元积分/.test(t)) { chapter = '一元函数积分'; if (!subjectKey) subjectKey = 'calculus'; }
+  else if (/一元函数微分|一元微分/.test(t)) { chapter = '一元函数微分'; if (!subjectKey) subjectKey = 'calculus'; }
+  else if (/函数与极限|极限/.test(t)) { chapter = '函数与极限'; if (!subjectKey) subjectKey = 'calculus'; }
+  else if (/二次型/.test(t)) { chapter = '二次型'; if (!subjectKey) subjectKey = 'linalg'; }
+  else if (/特征值|特征向量/.test(t)) { chapter = '特征值与特征向量'; if (!subjectKey) subjectKey = 'linalg'; }
+  else if (/线性方程组|方程组/.test(t)) { chapter = '线性方程组'; if (!subjectKey) subjectKey = 'linalg'; }
+  else if (/n维向量|向量组|向量/.test(t)) { chapter = 'n维向量'; if (!subjectKey) subjectKey = 'linalg'; }
+  else if (/矩阵/.test(t)) { chapter = '矩阵'; if (!subjectKey) subjectKey = 'linalg'; }
+  else if (/行列式/.test(t)) { chapter = '行列式'; if (!subjectKey) subjectKey = 'linalg'; }
 
   // 识别章节（按“第X章”数字映射）
   if (!chapter) {
@@ -101,7 +128,7 @@ function parseFirstLine(line) {
     else subjectKey = 'calculus';
   }
 
-  return { source, chapter, subjectKey };
+  return { source, chapter, subjectKey, painPoint };
 }
 
 // ─── 获取目标文件中已有的最大题号 ───
@@ -246,13 +273,13 @@ async function aiIngest() {
   // 2. 解析首行指示
   const lines = raw.split(/\r?\n/);
   const firstLine = lines[0] || '';
-  const { source, chapter, subjectKey } = parseFirstLine(firstLine);
+  const { source, chapter, subjectKey, painPoint } = parseFirstLine(firstLine);
 
   const subjectConfig = TAXONOMY[subjectKey];
-  const finalSource = source || (subjectKey === 'calculus' ? '严选题' : '严选题');
-  const finalChapter = chapter || (subjectKey === 'calculus' ? '二重积分' : '特征值与特征向量');
+  const finalSource = source || (subjectKey === 'past_exams' ? '历年真题' : '严选题');
+  const finalChapter = chapter || (subjectKey === 'past_exams' ? '二重积分' : (subjectKey === 'calculus' ? '二重积分' : '特征值与特征向量'));
 
-  console.log(`📋 [AI Ingest] 识别归属：【${subjectConfig.name}】${finalChapter} · ${finalSource}`);
+  console.log(`📋 [AI Ingest] 识别归属：【${subjectConfig.name}】${finalChapter} · ${finalSource}${painPoint ? ' · ' + painPoint : ''}`);
 
   // 3. 确定目标文件与已有最大题号
   const targetFile = path.join(contentDir, subjectConfig.file);
@@ -263,7 +290,7 @@ async function aiIngest() {
   const systemPrompt = buildSystemPrompt(finalSource, finalChapter, subjectKey, maxNum);
 
   // 首行是指示行，实际题目内容从第二行开始（如果首行是纯指示行）
-  const isIndicatorLine = /^(?:高数|高等数学|线性代数|线代|严选题|600题|660题|辅导讲义|精选题)/i.test(firstLine.trim()) && !firstLine.includes('📌');
+  const isIndicatorLine = /^(?:高数|高等数学|线性代数|线代|严选题|600题|660题|辅导讲义|精选题|\d{4}年|真题|数二)/i.test(firstLine.trim()) && !firstLine.includes('📌');
   const userContent = isIndicatorLine ? lines.slice(1).join('\n').trim() : raw;
 
   if (!userContent) {

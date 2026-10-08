@@ -31,6 +31,23 @@ const TAXONOMY = {
       '6. 二次型'
     ],
     sources: ['辅导讲义', '660题', '严选题']
+  },
+  past_exams: {
+    chapters: [
+      '1. 函数与极限',
+      '2. 一元函数微分',
+      '3. 一元函数积分',
+      '4. 常微分方程',
+      '5. 多元函数微分',
+      '6. 二重积分',
+      '7. 行列式',
+      '8. 矩阵',
+      '9. n维向量',
+      '10. 线性方程组',
+      '11. 特征值与特征向量',
+      '12. 二次型'
+    ],
+    sources: Array.from({ length: 22 }, (_, i) => `${2005 + i}年数二`)
   }
 };
 
@@ -44,23 +61,42 @@ function normalizeChapter(rawText, subjectId) {
     if (/一元函数积分|一元积分/i.test(text)) return '3. 一元函数积分';
     if (/一元函数微分|一元微分/i.test(text)) return '2. 一元函数微分';
     if (/函数与极限|极限/i.test(text)) return '1. 函数与极限';
-    // 默认高数当前均为二重积分专项
     return '6. 二重积分';
-  } else {
+  } else if (subjectId === 'linalg') {
     if (/二次型/i.test(text)) return '6. 二次型';
     if (/特征值|特征向量/i.test(text)) return '5. 特征值与特征向量';
     if (/线性方程组|方程组/i.test(text)) return '4. 线性方程组';
     if (/n维向量|向量组|向量/i.test(text)) return '3. n维向量';
     if (/矩阵/i.test(text)) return '2. 矩阵';
     if (/行列式/i.test(text)) return '1. 行列式';
-    // 默认线代当前均为特征值与特征向量专项
     return '5. 特征值与特征向量';
+  } else {
+    // 历年真题（数二覆盖高数6章 + 线代6章）
+    if (/二次型/i.test(text)) return '12. 二次型';
+    if (/特征值|特征向量/i.test(text)) return '11. 特征值与特征向量';
+    if (/线性方程组|方程组/i.test(text)) return '10. 线性方程组';
+    if (/n维向量|向量组|向量/i.test(text)) return '9. n维向量';
+    if (/矩阵/i.test(text)) return '8. 矩阵';
+    if (/行列式/i.test(text)) return '7. 行列式';
+    if (/二重积分/i.test(text)) return '6. 二重积分';
+    if (/多元函数微分|多元微分/i.test(text)) return '5. 多元函数微分';
+    if (/常微分方程|微分方程/i.test(text)) return '4. 常微分方程';
+    if (/一元函数积分|一元积分/i.test(text)) return '3. 一元函数积分';
+    if (/一元函数微分|一元微分/i.test(text)) return '2. 一元函数微分';
+    if (/函数与极限|极限/i.test(text)) return '1. 函数与极限';
+    return text || '未分类';
   }
 }
 
 // 标准化来源题集映射
 function normalizeSource(rawText, num, subjectId) {
   const text = (rawText || '').trim();
+  if (subjectId === 'past_exams') {
+    const yearMatch = text.match(/(\d{4})/i) || String(num).match(/(\d{4})/i);
+    if (yearMatch) return `${yearMatch[1]}年数二`;
+    return text || '历年真题';
+  }
+
   if (/660|600/i.test(text)) return '660题';
   if (/精选/i.test(text)) return '精选题';
   if (/严选/i.test(text)) return '严选题';
@@ -74,6 +110,16 @@ function normalizeSource(rawText, num, subjectId) {
   }
 }
 
+// 提取痛点归因
+function extractPainPoint(raw, tags) {
+  const allText = (tags.join(' ') + ' ' + raw);
+  if (/无思路/.test(allText)) return '无思路';
+  if (/计算失误/.test(allText)) return '计算失误';
+  if (/产生疑问|疑问/.test(allText)) return '产生疑问';
+  if (/审题陷阱|陷阱|题意陷阱/.test(allText)) return '审题陷阱';
+  return '';
+}
+
 manifest.subjects.forEach(subject => {
   const filePath = path.join(__dirname, '..', subject.file);
   if (!fs.existsSync(filePath)) {
@@ -82,12 +128,15 @@ manifest.subjects.forEach(subject => {
   }
   
   const md = fs.readFileSync(filePath, 'utf8');
-  const parts = md.split(/(?:<a id="problem-\d+"><\/a>|<div id="problem-\d+"><\/div>)/);
+  const anchorRegex = /<(?:a|div)\s+id="(problem-[^"]+)"/g;
+  const anchorMatches = [...md.matchAll(anchorRegex)].map(m => m[1]);
+  const parts = md.split(/(?:<a id="problem-[^"]+"><\/a>|<div id="problem-[^"]+"><\/div>)/);
   const parsedProblems = [];
+  const isPastExam = subject.id === 'past_exams';
   
   for (let i = 1; i < parts.length; i++) {
     const raw = parts[i];
-    const titleMatch = raw.match(/^[#\s]*📌\s*题目\s*(\d+)[:：]\s*([^\r\n]+)/m);
+    const titleMatch = raw.match(/^[#\s]*📌\s*题目\s*([0-9a-zA-Z_-]+)[:：]\s*([^\r\n]+)/m);
     
     if (!titleMatch) {
       console.warn(`\x1b[33m[Warning]\x1b[0m 发现一处缺失标题格式或未以 "📌 题目" 开头的块，在 ${subject.file}`);
@@ -95,9 +144,10 @@ manifest.subjects.forEach(subject => {
       continue;
     }
     
-    const num = parseInt(titleMatch[1], 10);
+    const rawNum = titleMatch[1].trim();
+    const num = isPastExam ? rawNum : parseInt(rawNum, 10);
     const title = titleMatch[2].trim();
-    const anchor = 'problem-' + num;
+    const anchor = anchorMatches[i - 1] || ('problem-' + num);
     
     // 提取章节
     let chapterRaw = '';
@@ -135,7 +185,13 @@ manifest.subjects.forEach(subject => {
       hasErrors = true;
     }
     
-    parsedProblems.push({ num, title, chapter, source, tags, anchor });
+    const problemItem = { num, title, chapter, source, tags, anchor };
+    if (isPastExam) {
+      const painPoint = extractPainPoint(raw, tags);
+      if (painPoint) problemItem.painPoint = painPoint;
+    }
+
+    parsedProblems.push(problemItem);
   }
   
   // 合并到现有的 batches 中
@@ -165,31 +221,49 @@ manifest.subjects.forEach(subject => {
   });
   
   parsedProblems.forEach(p => {
-    const date = existingNumToBatch[p.num] || today;
+    let date = existingNumToBatch[p.num];
+    if (!date) {
+      if (isPastExam) {
+        const ym = String(p.num).match(/^(\d{4})/);
+        date = ym ? ym[1] : today;
+      } else {
+        date = today;
+      }
+    }
     if (!newBatchesMap[date]) {
       newBatchesMap[date] = { date, problems: [] };
     }
     newBatchesMap[date].problems.push(p);
   });
   
-  // 将新题放入今天的 batch
+  // 将新题放入相应的 batch
   if (newProblems.length > 0) {
-    if (!newBatchesMap[today]) {
-      newBatchesMap[today] = { date: today, problems: [] };
-    }
     newProblems.forEach(np => {
-      if (!newBatchesMap[today].problems.some(p => p.num === np.num)) {
-        newBatchesMap[today].problems.push(np);
+      let date = today;
+      if (isPastExam) {
+        const ym = String(np.num).match(/^(\d{4})/);
+        date = ym ? ym[1] : today;
+      }
+      if (!newBatchesMap[date]) {
+        newBatchesMap[date] = { date, problems: [] };
+      }
+      if (!newBatchesMap[date].problems.some(p => p.num === np.num)) {
+        newBatchesMap[date].problems.push(np);
       }
     });
   }
   
-  // 转换回数组，并按日期升序排列
-  const sortedDates = Object.keys(newBatchesMap).sort();
+  // 转换回数组，并按日期/年份升序排列
+  const sortedDates = Object.keys(newBatchesMap).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const finalBatches = sortedDates.map(date => {
     const batch = newBatchesMap[date];
-    // batch 内题目按题号升序
-    batch.problems.sort((a, b) => a.num - b.num);
+    // batch 内题目按题号自然升序
+    batch.problems.sort((a, b) => {
+      if (typeof a.num === 'number' && typeof b.num === 'number') {
+        return a.num - b.num;
+      }
+      return String(a.num).localeCompare(String(b.num), undefined, { numeric: true });
+    });
     return batch;
   });
   

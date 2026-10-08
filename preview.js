@@ -157,6 +157,7 @@
         $('loadingState').style.display = 'none';
       }
 
+      updateSidebarDimensionTabs(subject.id);
       buildSidebar(subject, allProblems);
       renderCards(allProblems);
 
@@ -221,6 +222,24 @@
         '6. 二次型'
       ],
       sources: ['辅导讲义', '660题', '严选题']
+    },
+    past_exams: {
+      chapters: [
+        '1. 函数与极限',
+        '2. 一元函数微分',
+        '3. 一元函数积分',
+        '4. 常微分方程',
+        '5. 多元函数微分',
+        '6. 二重积分',
+        '7. 行列式',
+        '8. 矩阵',
+        '9. n维向量',
+        '10. 线性方程组',
+        '11. 特征值与特征向量',
+        '12. 二次型'
+      ],
+      sources: Array.from({ length: 22 }, (_, i) => `${2005 + i}年数二`),
+      pains: ['🔴 无思路', '🟠 计算失误', '🔵 产生疑问', '🟡 审题陷阱']
     }
   };
 
@@ -234,7 +253,7 @@
       if (/一元函数微分|一元微分/i.test(text)) return '2. 一元函数微分';
       if (/函数与极限|极限/i.test(text)) return '1. 函数与极限';
       return '6. 二重积分';
-    } else {
+    } else if (subjectId === 'linalg') {
       if (/二次型/i.test(text)) return '6. 二次型';
       if (/特征值|特征向量/i.test(text)) return '5. 特征值与特征向量';
       if (/线性方程组|方程组/i.test(text)) return '4. 线性方程组';
@@ -242,11 +261,30 @@
       if (/矩阵/i.test(text)) return '2. 矩阵';
       if (/行列式/i.test(text)) return '1. 行列式';
       return '5. 特征值与特征向量';
+    } else {
+      if (/二次型/i.test(text)) return '12. 二次型';
+      if (/特征值|特征向量/i.test(text)) return '11. 特征值与特征向量';
+      if (/线性方程组|方程组/i.test(text)) return '10. 线性方程组';
+      if (/n维向量|向量组|向量/i.test(text)) return '9. n维向量';
+      if (/矩阵/i.test(text)) return '8. 矩阵';
+      if (/行列式/i.test(text)) return '7. 行列式';
+      if (/二重积分/i.test(text)) return '6. 二重积分';
+      if (/多元函数微分|多元微分/i.test(text)) return '5. 多元函数微分';
+      if (/常微分方程|微分方程/i.test(text)) return '4. 常微分方程';
+      if (/一元函数积分|一元积分/i.test(text)) return '3. 一元函数积分';
+      if (/一元函数微分|一元微分/i.test(text)) return '2. 一元函数微分';
+      if (/函数与极限|极限/i.test(text)) return '1. 函数与极限';
+      return text || '未分类';
     }
   }
 
   function normalizeSource(rawText, num, subjectId) {
     const text = (rawText || '').trim();
+    if (subjectId === 'past_exams') {
+      const yearMatch = text.match(/(\d{4})/i) || String(num).match(/(\d{4})/i);
+      if (yearMatch) return `${yearMatch[1]}年数二`;
+      return text || '历年真题';
+    }
     if (/660|600/i.test(text)) return '660题';
     if (/精选/i.test(text)) return '精选题';
     if (/严选/i.test(text)) return '严选题';
@@ -258,21 +296,58 @@
     }
   }
 
+  function extractPainPoint(raw, tags) {
+    const allText = (tags.join(' ') + ' ' + raw);
+    if (/无思路/.test(allText)) return '无思路';
+    if (/计算失误/.test(allText)) return '计算失误';
+    if (/产生疑问|疑问/.test(allText)) return '产生疑问';
+    if (/审题陷阱|陷阱|题意陷阱/.test(allText)) return '审题陷阱';
+    return '';
+  }
+
+  function getPainIcon(p) {
+    if (/无思路/.test(p)) return '🔴';
+    if (/计算失误/.test(p)) return '🟠';
+    if (/产生疑问|疑问/.test(p)) return '🔵';
+    if (/审题陷阱|陷阱/.test(p)) return '🟡';
+    return '🎯';
+  }
+
+  function getPainClass(p) {
+    if (/无思路/.test(p)) return 'no-clue';
+    if (/计算失误/.test(p)) return 'calc-error';
+    if (/产生疑问|疑问/.test(p)) return 'doubt';
+    if (/审题陷阱|陷阱/.test(p)) return 'trap';
+    return 'other';
+  }
+
+  function getTagClass(t) {
+    if (/无思路/.test(t)) return ' p-tag-pain-no-clue';
+    if (/计算失误/.test(t)) return ' p-tag-pain-calc-error';
+    if (/产生疑问|疑问/.test(t)) return ' p-tag-pain-doubt';
+    if (/审题陷阱|陷阱/.test(t)) return ' p-tag-pain-trap';
+    return '';
+  }
+
   // ────────────────────────────────────────────
   // Parse Problems from Markdown
   // ────────────────────────────────────────────
   function parseProblems(md, subject) {
-    const parts = md.split(/(?:<a id="problem-\d+"><\/a>|<div id="problem-\d+"><\/div>)/);
+    const anchorRegex = /<(?:a|div)\s+id="(problem-[^"]+)"/g;
+    const anchorMatches = [...md.matchAll(anchorRegex)].map(m => m[1]);
+    const parts = md.split(/(?:<a id="problem-[^"]+"><\/a>|<div id="problem-[^"]+"><\/div>)/);
     const problems = [];
+    const isPastExam = subject.id === 'past_exams';
 
     for (let i = 1; i < parts.length; i++) {
       const raw = parts[i];
-      const titleMatch = raw.match(/^[#\s]*📌\s*题目\s*(\d+)[:：]\s*([^\n]+)/m);
+      const titleMatch = raw.match(/^[#\s]*📌\s*题目\s*([0-9a-zA-Z_-]+)[:：]\s*([^\n]+)/m);
       if (!titleMatch) continue;
 
-      const num = parseInt(titleMatch[1], 10);
+      const rawNum = titleMatch[1].trim();
+      const num = isPastExam ? rawNum : parseInt(rawNum, 10);
       const title = titleMatch[2].trim();
-      const anchor = 'problem-' + num;
+      const anchor = anchorMatches[i - 1] || ('problem-' + num);
 
       // Extract tags
       const tagMatch = raw.match(/题型标签[：:]\s*([^\n\r·]+)/);
@@ -289,6 +364,9 @@
       const sourceMatch = raw.match(/(?:来源题集|来源|题集)[：:]\s*`?([^`\n\r·]+)`?/);
       if (sourceMatch) sourceRaw = sourceMatch[1].trim();
       const source = normalizeSource(sourceRaw, num, subject.id);
+
+      // Extract pain point
+      const painPoint = isPastExam ? extractPainPoint(raw, tags) : '';
 
       // Extract stem (原题呈现)
       let stem = '';
@@ -318,11 +396,18 @@
         solutionBody = solMatch[0].trim();
       }
 
-      problems.push({ num, title, chapter, source, anchor, tags, stem, breakthrough, finalAns, solutionBody });
+      const item = { num, title, chapter, source, anchor, tags, stem, breakthrough, finalAns, solutionBody };
+      if (painPoint) item.painPoint = painPoint;
+      problems.push(item);
     }
 
-    // Sort by num ascending
-    problems.sort((a, b) => a.num - b.num);
+    // Sort naturally
+    problems.sort((a, b) => {
+      if (typeof a.num === 'number' && typeof b.num === 'number') {
+        return a.num - b.num;
+      }
+      return String(a.num).localeCompare(String(b.num), undefined, { numeric: true });
+    });
     return problems;
   }
 
@@ -335,7 +420,22 @@
     container.innerHTML = '';
 
     if (!problems.length) {
-      container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-muted); font-size:15px;">🔍 未找到匹配的题目，请尝试更换搜索词</div>';
+      if (currentSubjectId === 'past_exams') {
+        container.innerHTML = `
+          <div class="p-empty-state-card">
+            <div class="p-empty-icon">🏆</div>
+            <h3>考研数学（二）历年真题 · SOP 错因复盘模块已就绪</h3>
+            <p>覆盖 2005–2026 年数二全部真题。本题库旨在精炼你亲身做题踩坑的高价值题目。</p>
+            <div class="p-empty-guide">
+              <div class="p-guide-title">💡 录入协议说明（在对话框或 inbox.md 中发送）：</div>
+              <code>2021年数二 T15 无思路 二重积分<br>[题目内容与演算...]</code>
+              <div class="p-guide-desc">四维错因聚合：🔴 无思路 / 🟠 计算失误 / 🔵 产生疑问 / 🟡 审题陷阱</div>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-muted); font-size:15px;">🔍 未找到匹配的题目，请尝试更换搜索词</div>';
+      }
       return;
     }
 
@@ -351,12 +451,13 @@
       header.innerHTML = `
         <div class="p-card-title-group">
           <span class="p-problem-num-badge">P.${p.num}</span>
+          ${p.painPoint ? `<span class="p-pain-badge p-pain-${getPainClass(p.painPoint)}">${getPainIcon(p.painPoint)} ${p.painPoint}</span>` : ''}
           <span class="p-source-badge">🏷️ ${p.source}</span>
           <span class="p-chapter-badge">📚 ${p.chapter}</span>
           <h3 class="p-card-title">${renderMathInline(p.title)}</h3>
           ${(window.getUserMarkBadgeHtml && window.getUserMarkBadgeHtml(p.anchor)) || ''}
           <div class="p-card-tags">
-            ${p.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}
+            ${p.tags.map(t => `<span class="p-tag${getTagClass(t)}">${t}</span>`).join('')}
           </div>
         </div>
         <div class="p-card-actions">
@@ -551,11 +652,26 @@
     if (!nav) return;
     nav.innerHTML = '';
 
-    const dim = localStorage.getItem('sidebarDimension') || 'chapter';
+    if (!problems.length) {
+      if (subject.id === 'past_exams') {
+        nav.innerHTML = '<div style="padding:28px 16px; text-align:center; color:var(--text-muted); font-size:13px; line-height:1.6;">🏆 暂无录入真题<br><span style="font-size:11.5px; opacity:0.8;">遇到卡点题目发送入库即可</span></div>';
+      } else {
+        nav.innerHTML = '<div style="padding:28px 16px; text-align:center; color:var(--text-muted); font-size:13px;">暂无题目</div>';
+      }
+      return;
+    }
+
+    let dim = localStorage.getItem('sidebarDimension_' + subject.id) || localStorage.getItem('sidebarDimension') || 'chapter';
+    if (subject.id === 'past_exams' && (dim === 'source' || dim === 'date')) {
+      dim = 'chapter';
+    } else if (subject.id !== 'past_exams' && (dim === 'year' || dim === 'pain')) {
+      dim = 'chapter';
+    }
+
     const isGrid = localStorage.getItem('sidebarViewMode') === 'grid';
 
     if (dim === 'chapter') {
-      // 📚 按考研官方大纲 6 大标准章节归属分类（严格保持 1..6 顺序）
+      // 📚 按考研官方大纲标准章节归属分类（严格保持 1..12 顺序）
       const canonicalList = TAXONOMY[subject.id] ? TAXONOMY[subject.id].chapters : [];
       const chapterMap = {};
       problems.forEach((p) => {
@@ -606,6 +722,158 @@
           a.href = '#' + p.anchor;
           a.dataset.anchor = p.anchor;
           a.title = p.num + '. [' + p.source + '] ' + stripMath(p.title);
+          a.innerHTML = `
+            <span class="p-nav-num">${p.num}</span>
+            <span class="p-nav-text">${stripMath(p.title)}</span>
+          `;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = document.getElementById(p.anchor);
+            if (card) {
+              card.classList.add('sop-expanded');
+              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              history.replaceState(null, '', '#' + p.anchor);
+              highlightActiveNavItem(p.anchor);
+            }
+            closeMobileMenu();
+          });
+          problemList.appendChild(a);
+        });
+
+        group.appendChild(problemList);
+        nav.appendChild(group);
+      });
+    } else if (dim === 'year') {
+      // 📋 按真题年份（2005~2026）套卷聚类
+      const yearMap = {};
+      problems.forEach(p => {
+        let yr = '历年真题';
+        const ym = String(p.source || p.num).match(/(\d{4})/);
+        if (ym) yr = `${ym[1]}年数二`;
+        if (!yearMap[yr]) yearMap[yr] = [];
+        yearMap[yr].push(p);
+      });
+
+      const sortedYears = Object.keys(yearMap).sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+      const targetAnchor = location.hash ? location.hash.slice(1) : '';
+
+      sortedYears.forEach((yr, index) => {
+        const yrProblems = yearMap[yr];
+        const group = document.createElement('div');
+        group.className = 'p-nav-date-group';
+
+        const containsTarget = Boolean(targetAnchor && yrProblems.some(p => p.anchor === targetAnchor));
+        if (sortedYears.length > 1 && !containsTarget && index > 0) {
+          group.classList.add('collapsed');
+        }
+
+        const header = document.createElement('div');
+        header.className = 'p-nav-date-header';
+        header.innerHTML = `
+          <div class="p-date-title-box">
+            <span>📋 ${yr}</span>
+            <span class="p-date-badge">${yrProblems.length} 题</span>
+          </div>
+          <span class="p-date-arrow">▼</span>
+        `;
+        header.addEventListener('click', () => {
+          group.classList.toggle('collapsed');
+          updateToggleAllBtnState();
+        });
+        group.appendChild(header);
+
+        const problemList = document.createElement('div');
+        problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+        yrProblems.forEach(p => {
+          const a = document.createElement('a');
+          a.className = 'p-nav-item';
+          a.href = '#' + p.anchor;
+          a.dataset.anchor = p.anchor;
+          a.title = `${p.num}. [${p.chapter}] ${stripMath(p.title)}`;
+          a.innerHTML = `
+            <span class="p-nav-num">${p.num}</span>
+            <span class="p-nav-text">${p.painPoint ? getPainIcon(p.painPoint) + ' ' : ''}${stripMath(p.title)}</span>
+          `;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = document.getElementById(p.anchor);
+            if (card) {
+              card.classList.add('sop-expanded');
+              card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              history.replaceState(null, '', '#' + p.anchor);
+              highlightActiveNavItem(p.anchor);
+            }
+            closeMobileMenu();
+          });
+          problemList.appendChild(a);
+        });
+
+        group.appendChild(problemList);
+        nav.appendChild(group);
+      });
+    } else if (dim === 'pain') {
+      // 🎯 按四维痛点归因聚合（🔴 无思路 / 🟠 计算失误 / 🔵 产生疑问 / 🟡 审题陷阱）
+      const PAIN_ORDER = [
+        { key: '无思路', label: '🔴 无思路' },
+        { key: '计算失误', label: '🟠 计算失误' },
+        { key: '产生疑问', label: '🔵 产生疑问' },
+        { key: '审题陷阱', label: '🟡 审题陷阱' },
+        { key: '未归因', label: '⚪ 暂未归因' }
+      ];
+
+      const painMap = {
+        '无思路': [],
+        '计算失误': [],
+        '产生疑问': [],
+        '审题陷阱': [],
+        '未归因': []
+      };
+
+      problems.forEach(p => {
+        const pk = p.painPoint || '未归因';
+        if (painMap[pk]) painMap[pk].push(p);
+        else painMap['未归因'].push(p);
+      });
+
+      const targetAnchor = location.hash ? location.hash.slice(1) : '';
+
+      PAIN_ORDER.forEach((painItem, index) => {
+        const pList = painMap[painItem.key] || [];
+        if (!pList.length) return;
+
+        const group = document.createElement('div');
+        group.className = 'p-nav-date-group';
+
+        const containsTarget = Boolean(targetAnchor && pList.some(p => p.anchor === targetAnchor));
+        if (index > 0 && !containsTarget) {
+          group.classList.add('collapsed');
+        }
+
+        const header = document.createElement('div');
+        header.className = 'p-nav-date-header';
+        header.innerHTML = `
+          <div class="p-date-title-box">
+            <span>${painItem.label}</span>
+            <span class="p-date-badge">${pList.length} 题</span>
+          </div>
+          <span class="p-date-arrow">▼</span>
+        `;
+        header.addEventListener('click', () => {
+          group.classList.toggle('collapsed');
+          updateToggleAllBtnState();
+        });
+        group.appendChild(header);
+
+        const problemList = document.createElement('div');
+        problemList.className = 'p-nav-problems' + (isGrid ? ' grid-mode' : '');
+
+        pList.forEach(p => {
+          const a = document.createElement('a');
+          a.className = 'p-nav-item';
+          a.href = '#' + p.anchor;
+          a.dataset.anchor = p.anchor;
+          a.title = `${p.num}. [${p.source}] ${stripMath(p.title)}`;
           a.innerHTML = `
             <span class="p-nav-num">${p.num}</span>
             <span class="p-nav-text">${stripMath(p.title)}</span>
@@ -848,7 +1116,10 @@
           p.title.toLowerCase().includes(q) ||
           p.tags.some(t => t.toLowerCase().includes(q)) ||
           p.stem.toLowerCase().includes(q) ||
-          String(p.num).includes(q)
+          String(p.num).toLowerCase().includes(q) ||
+          (p.painPoint && p.painPoint.toLowerCase().includes(q)) ||
+          (p.chapter && p.chapter.toLowerCase().includes(q)) ||
+          (p.source && p.source.toLowerCase().includes(q))
         );
       });
       renderCards(filtered);
@@ -1098,29 +1369,62 @@
   }
 
   // ────────────────────────────────────────────
+  // Sidebar Dimension Tabs (动态分学科切换维度)
+  // ────────────────────────────────────────────
+  function updateSidebarDimensionTabs(subjectId) {
+    const dimContainer = $('sidebarDimensionTabs');
+    if (!dimContainer) return;
+
+    const isPast = subjectId === 'past_exams';
+    let savedDim = localStorage.getItem('sidebarDimension_' + subjectId) || localStorage.getItem('sidebarDimension') || 'chapter';
+    if (isPast && (savedDim === 'source' || savedDim === 'date')) savedDim = 'chapter';
+    if (!isPast && (savedDim === 'year' || savedDim === 'pain')) savedDim = 'chapter';
+
+    if (isPast) {
+      dimContainer.innerHTML = `
+        <button class="p-dim-tab${savedDim === 'chapter' ? ' active' : ''}" data-dim="chapter" title="按考纲知识点章节分类">📚 章节</button>
+        <button class="p-dim-tab${savedDim === 'year' ? ' active' : ''}" data-dim="year" title="按 2005~2026 年份套卷浏览">📋 年份</button>
+        <button class="p-dim-tab${savedDim === 'pain' ? ' active' : ''}" data-dim="pain" title="按错因痛点聚合（无思路/计算失误/产生疑问/审题陷阱）">🎯 痛点</button>
+        <button class="p-dim-tab${savedDim === 'marks' ? ' active' : ''}" data-dim="marks" title="星标与随手记">⭐️ 标记</button>
+      `;
+    } else {
+      dimContainer.innerHTML = `
+        <button class="p-dim-tab${savedDim === 'chapter' ? ' active' : ''}" data-dim="chapter" title="按知识点章节分类">📚 章节</button>
+        <button class="p-dim-tab${savedDim === 'source' ? ' active' : ''}" data-dim="source" title="按题集来源分类（严选题/600题/辅导讲义等）">🏷️ 题集</button>
+        <button class="p-dim-tab${savedDim === 'date' ? ' active' : ''}" data-dim="date" title="按收录日期归档">📅 日期</button>
+        <button class="p-dim-tab${savedDim === 'marks' ? ' active' : ''}" data-dim="marks" title="星标与随手记">⭐️ 标记</button>
+      `;
+    }
+
+    qsa('.p-dim-tab', dimContainer).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dim = btn.dataset.dim;
+        qsa('.p-dim-tab', dimContainer).forEach(b => b.classList.toggle('active', b.dataset.dim === dim));
+        localStorage.setItem('sidebarDimension_' + currentSubjectId, dim);
+        localStorage.setItem('sidebarDimension', dim);
+        const currentSub = manifest && manifest.subjects.find(s => s.id === currentSubjectId);
+        if (currentSub && allProblems) {
+          buildSidebar(currentSub, allProblems);
+        }
+        const toastMsg = {
+          chapter: '📚 已切换为按知识点章节分类',
+          source: '🏷️ 已切换为按题集来源分类',
+          date: '📅 已切换为按收录日期归档',
+          year: '📋 已切换为按年份套卷分类',
+          pain: '🎯 已切换为按错因痛点聚合',
+          marks: '⭐️ 已切换为星标与随手记'
+        }[dim] || '已切换分类维度';
+        showToast(toastMsg);
+      });
+    });
+  }
+
+  // ────────────────────────────────────────────
   // Sidebar View Mode (章节/日期 维度 + 列表/矩阵 视图)
   // ────────────────────────────────────────────
   function setupSidebarViewMode() {
-    // 1. 分类维度切换（📚 章节 vs 📅 日期）
-    const dimContainer = $('sidebarDimensionTabs');
-    if (dimContainer) {
-      const setDim = (dim) => {
-        qsa('.p-dim-tab', dimContainer).forEach(b => b.classList.toggle('active', b.dataset.dim === dim));
-        localStorage.setItem('sidebarDimension', dim);
-        const currentSub = manifest && manifest.subjects.find(s => s.id === currentSubjectId);
-        if (currentSub && allProblems.length) {
-          buildSidebar(currentSub, allProblems);
-        }
-        showToast(dim === 'chapter' ? '📚 已切换为按知识点章节分类' : (dim === 'source' ? '🏷️ 已切换为按题集来源分类' : '📅 已切换为按收录日期归档'));
-      };
-
-      qsa('.p-dim-tab', dimContainer).forEach(btn => {
-        btn.addEventListener('click', () => setDim(btn.dataset.dim));
-      });
-
-      const savedDim = localStorage.getItem('sidebarDimension') || 'chapter';
-      qsa('.p-dim-tab', dimContainer).forEach(b => b.classList.toggle('active', b.dataset.dim === savedDim));
-    }
+    // 1. 分类维度切换
+    updateSidebarDimensionTabs(currentSubjectId);
 
     // 2. 视图展示切换（列表 vs 题号矩阵）
     const container = $('sidebarViewMode');
